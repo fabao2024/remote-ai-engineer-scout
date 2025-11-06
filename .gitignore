@@ -144,6 +144,10 @@ ENV/
 env.bak/
 venv.bak/
 
+# Conda environments
+.conda/
+*/.conda_env/
+
 # Spyder project settings
 .spyderproject
 .spyproject
@@ -211,5 +215,9 @@ __marimo__/
 
 #claude
 .claude
+.claude/
+
+# Windows
+Thumbs.db
 
 .idea

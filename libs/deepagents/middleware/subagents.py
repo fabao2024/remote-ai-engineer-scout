@@ -1,7 +1,7 @@
 """Middleware for providing subagents to an agent via a `task` tool."""
 
 from collections.abc import Awaitable, Callable, Sequence
-from typing import Any, NotRequired, TypedDict, cast
+from typing import Any, TypedDict, cast
 
 from langchain.agents import create_agent
 from langchain.agents.middleware import HumanInTheLoopMiddleware, InterruptOnConfig
@@ -14,7 +14,7 @@ from langchain_core.tools import StructuredTool
 from langgraph.types import Command
 
 
-class SubAgent(TypedDict):
+class _SubAgentRequired(TypedDict):
     """Specification for an agent.
 
     When specifying custom agents, the `default_middleware` from `SubAgentMiddleware`
@@ -35,13 +35,15 @@ class SubAgent(TypedDict):
     tools: Sequence[BaseTool | Callable | dict[str, Any]]
     """The tools to use for the agent."""
 
-    model: NotRequired[str | BaseChatModel]
+
+class SubAgent(_SubAgentRequired, total=False):
+    model: str | BaseChatModel
     """The model for the agent. Defaults to `default_model`."""
 
-    middleware: NotRequired[list[AgentMiddleware]]
+    middleware: list[AgentMiddleware]
     """Additional middleware to append after `default_middleware`."""
 
-    interrupt_on: NotRequired[dict[str, bool | InterruptOnConfig]]
+    interrupt_on: dict[str, bool | InterruptOnConfig]
     """The tool configs to use for the agent."""
 
 

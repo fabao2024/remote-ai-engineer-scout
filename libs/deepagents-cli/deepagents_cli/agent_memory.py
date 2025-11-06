@@ -1,8 +1,6 @@
 """Middleware for loading agent-specific long-term memory into the system prompt."""
 
 from collections.abc import Awaitable, Callable
-from typing import NotRequired
-
 from deepagents.backends.protocol import BackendProtocol
 from langchain.agents.middleware.types import (
     AgentMiddleware,
@@ -15,7 +13,7 @@ from langchain.agents.middleware.types import (
 class AgentMemoryState(AgentState):
     """State for the agent memory middleware."""
 
-    agent_memory: NotRequired[str | None]
+    agent_memory: str | None = None
     """Long-term memory content for the agent."""
 
 
