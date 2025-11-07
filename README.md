@@ -5,6 +5,9 @@
 
 # Remote AI Engineer Scout
 
+<img width="608" height="605" alt="image" src="https://github.com/user-attachments/assets/3c2cd325-c458-4cf1-a49c-92be0fb34fd5" />
+
+
 > Projeto baseado em [langchain-ai/deepagents](https://github.com/langchain-ai/deepagents) e adaptado para mapear vagas remotas de AI Engineer em tempo real.
 
 ## Visão Geral
