@@ -114,6 +114,26 @@ Find remote AI Engineer roles hiring now aligned with my profile.
 - `Failed to POST https://api.smith.langchain.com...`: `LANGCHAIN_API_KEY` ausente ou sem permissão; remova tracing se não for usar.
 - `typing.NotRequired` warnings: já eliminados nos middlewares (state schemas agora usam tipos opcionais padrão).
 
+## Rastreamento e Custos
+
+### LangSmith
+1. Ative o tracing exportando `LANGCHAIN_TRACING_V2=true`, `LANGCHAIN_API_KEY` e `LANGCHAIN_PROJECT`.
+2. Execute `python research_agent.py`. Cada chamada gera um **run** no LangSmith com toda a árvore de ferramentas, prompts e tokens.
+3. No painel do LangSmith, filtre pelo projeto definido e registre:
+   - Horário e descrição da execução (adicione `metadata` em `agent.invoke(...)` se quiser classificar consultas).
+   - Tabela de `prompt_tokens`, `completion_tokens`, `total_tokens` e custo estimado por execução.
+4. Para divulgar no README, capture screenshots dos gráficos ou use o botão **Export CSV** para montar uma tabela como:
+
+   | Execução | Consulta | Prompt Tokens | Completion Tokens | Custo (USD) |
+   |----------|----------|---------------|-------------------|-------------|
+   | 2024-06-30 AM | “Find remote AI Engineer roles…” | 6 245 | 4 108 | $0.21 |
+   | 2024-06-30 PM | “Senior AI roles LATAM-friendly” | 7 002 | 4 887 | $0.24 |
+
+### Portal da OpenAI / Usage API
+- Acesse [https://platform.openai.com/usage](https://platform.openai.com/usage) para validar os mesmos números diários.
+- Opcionalmente, capture `result["usage"]` após `agent.invoke(...)` e grave em `reports/usage_logs/YYYYMMDD.json`.
+- Adicione um resumo mensal no README ou em `docs/usage.md`, com totais por tipo de modelo e custo acumulado.
+
 # Resultados Esperados (exemplo de 1 execução)
 
 # Remote AI Engineer Opportunities Brief
