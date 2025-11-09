@@ -134,6 +134,9 @@ Find remote AI Engineer roles hiring now aligned with my profile.
 - Opcionalmente, capture `result["usage"]` após `agent.invoke(...)` e grave em `reports/usage_logs/YYYYMMDD.json`.
 - Adicione um resumo mensal no README ou em `docs/usage.md`, com totais por tipo de modelo e custo acumulado.
 
+  <img width="1917" height="964" alt="image" src="https://github.com/user-attachments/assets/207e8544-6de6-4fcc-b2cd-3cdd27c780e5" />
+
+
 # Resultados Esperados (exemplo de 1 execução)
 
 # Remote AI Engineer Opportunities Brief
