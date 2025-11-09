@@ -210,6 +210,8 @@ Based on the latest searches for remote AI Engineer roles, there is a significan
 - Persistir histórico diário em uma pasta `reports/`.
 - Adicionar testes de regressão para os middlewares customizados.
 - Automatizar publicação (ex.: GitHub Actions que roda o agente e faz commit do relatório diário).
+- Adicionar um front end para melhor interação com o usuário final que não conhece em profundidade ferramentas como Python, VS Code
+- Adicionar e ajustar o modelo para rotacionar o modelo visando otimizar custos ou até detalhes da execução (LLM Routing)
 
 ## Créditos
 
