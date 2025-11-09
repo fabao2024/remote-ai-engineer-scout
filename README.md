@@ -7,218 +7,185 @@
 
 <img width="608" height="605" alt="image" src="https://github.com/user-attachments/assets/3c2cd325-c458-4cf1-a49c-92be0fb34fd5" />
 
+> Built on top of [langchain-ai/deepagents](https://github.com/langchain-ai/deepagents) and adapted to surface remote AI Engineer roles in near real time.  
+> Languages: English (this file) · [Portuguese](README_pt.md)
 
-> Projeto baseado em [langchain-ai/deepagents](https://github.com/langchain-ai/deepagents) e adaptado para mapear vagas remotas de AI Engineer em tempo real.
+## Overview
 
-## Visão Geral
+This repository hosts a “deep” agent built with **DeepAgents + LangChain**, using the `openai:gpt-4o-mini` model, specialized subagents, and **Tavily** for live web search. Each run gathers remote AI Engineer openings, cross-checks requirements (skills, seniority, stack, compensation bands, geo constraints), and emits a Markdown brief ready to share.
 
-Este repositório traz um agente “deep” construído com **DeepAgents + LangChain**, usando o modelo `openai:gpt-4o-mini`, subagentes especializados e busca web via **Tavily**. A cada execução, ele coleta vagas remotas de Engenharia de IA, cruza requisitos (skills, senioridade, stack, salários, restrições geográficas) e gera um relatório em Markdown pronto para compartilhar.
+Highlights:
+- Supervisor agent orchestrates **research** and **critique** subagents for higher-quality outputs.
+- Custom filesystem middleware stores both the generated report (`final_report.md`) and the base prompt (`question.txt`).
+- Optional LangSmith tracing (`LANGCHAIN_TRACING_V2=true`) keeps an auditable history of queries, tool calls, and cost.
 
-Principais destaques:
-- Supervisão única com subagentes de **pesquisa** e **crítica** para garantir qualidade.
-- Middleware de **filesystem** customizado para armazenar o relatório (`final_report.md`) e o prompt base (`question.txt`).
-- Integração opcional com LangSmith para rastrear execuções (`LANGCHAIN_TRACING_V2=true`).
-
-## Arquitetura em Alto Nível
+## High-Level Architecture
 
 ```
-Usuário → research_agent.py
-                  ├─ create_deep_agent(...)
-                  │     ├─ Subagent “research-agent” (usa Tavily)
-                  │     └─ Subagent “critique-agent”
-                  ├─ Ferramentas: internet_search (Tavily), filesystem middleware
-                  └─ Saídas: final_report.md + question.txt
+User → research_agent.py
+               ├─ create_deep_agent(...)
+               │     ├─ Subagent “research-agent” (uses Tavily)
+               │     └─ Subagent “critique-agent”
+               ├─ Tools: internet_search, filesystem middleware
+               └─ Outputs: final_report.md + question.txt
 ```
 
-## Pré-requisitos
+## Prerequisites
 
 - Python 3.10+
-- Dependências listadas em `requirements.txt`
-- Chaves/variáveis de ambiente:
+- Dependencies listed in `requirements.txt`
+- Environment variables:
   - `OPENAI_API_KEY`
   - `TAVILY_API_KEY`
-  - `LANGCHAIN_API_KEY`, `LANGCHAIN_TRACING_V2=true`, `LANGCHAIN_PROJECT` (opcionais, apenas se quiser enviar traces ao LangSmith)
+  - `LANGCHAIN_API_KEY`, `LANGCHAIN_TRACING_V2=true`, `LANGCHAIN_PROJECT` (optional, required only for LangSmith tracing)
 
-### Exemplo de configuração no PowerShell
+### PowerShell setup
 
-| Variável                | Obrigatória | Exemplo                  | Uso                                     |
-|-------------------------|-------------|--------------------------|------------------------------------------|
-| OPENAI_API_KEY          | Sim         | sk-...                   | Modelo `openai:gpt-4o-mini`              |
-| TAVILY_API_KEY          | Sim         | tvly-...                 | Busca Web                                |
-| LANGCHAIN_API_KEY       | Não         | ls-...                   | Tracing (LangSmith)                      |
-| LANGCHAIN_TRACING_V2    | Não         | true                     | Ativa tracing                            |
-| LANGCHAIN_PROJECT       | Não         | remote-ai-scout          | Nome do projeto no LangSmith             |
+| Variable             | Required | Example           | Purpose                                |
+|----------------------|----------|-------------------|----------------------------------------|
+| OPENAI_API_KEY       | Yes      | `sk-...`          | Chat model (`openai:gpt-4o-mini`)      |
+| TAVILY_API_KEY       | Yes      | `tvly-...`        | Web search tool                        |
+| LANGCHAIN_API_KEY    | No       | `ls-...`          | LangSmith API key                      |
+| LANGCHAIN_TRACING_V2 | No       | `true`            | Enables tracing                        |
+| LANGCHAIN_PROJECT    | No       | `remote-ai-scout` | Project bucket inside LangSmith        |
 
+Persist values for future shells:
+
+```powershell
+setx OPENAI_API_KEY "sk-..."
+setx TAVILY_API_KEY "tvly-..."
+setx LANGCHAIN_API_KEY "ls-..."
+setx LANGCHAIN_TRACING_V2 "true"
+setx LANGCHAIN_PROJECT "remote-ai-scout"
 ```
 
-Reabra o terminal ou execute `,& $PROFILE` para carregar as variáveis persistidas.  
-Para uso apenas na sessão atual, utilize `$env:OPENAI_API_KEY = "..."`.
+Or scope them to the current session with `$env:OPENAI_API_KEY = "..."`.
 
-## Instalação
+## Installation
 
 ```bash
 python -m venv .venv
 .\.venv\Scripts\activate        # Windows (PowerShell)
-# source .venv/bin/activate     # Linux/Mac
+# source .venv/bin/activate     # Linux / macOS
 pip install -r requirements.txt
 ```
 
-## Como Executar
+## Usage
 
 ```bash
 python research_agent.py
 ```
 
-O script:
-1. Lê o prompt em `question.txt` (por padrão “Find remote AI Engineer roles hiring now aligned with my profile.”).
-2. Invoca o deep agent, que dispara os subagentes de pesquisa/crítica e usa Tavily para coletar vagas atuais.
-3. Sobrescreve `final_report.md` com o relatório atualizado e, se necessário, atualiza `question.txt`.
+Execution flow:
+1. Read `question.txt` (defaults to “Find remote AI Engineer roles hiring now aligned with my profile.”).
+2. Launch the deep agent, which spawns the research and critique subagents and calls Tavily for fresh postings.
+3. Overwrite `final_report.md` with the newest report (adjust the script to append timestamped files if you want history).
 
-> Quer manter um histórico em vez de sobrescrever? Ajuste o trecho final de `research_agent.py` para salvar com timestamp (ex.: `final_report_YYYYMMDD.md`).
-
-## Estrutura do Repositório
+## Repository Layout
 
 ```
 .
-├─ research_agent.py            # Configuração principal do agente
-├─ question.txt                 # Prompt base
-├─ final_report.md              # Último relatório gerado
+├─ research_agent.py            # Agent wiring + subagent definitions
+├─ question.txt                 # Prompt used for each run
+├─ final_report.md              # Latest generated report
 ├─ libs/
-│  ├─ deepagents-cli/...        # Ajustes no middleware de memória
-│  └─ deepagents/...            # Middlewares customizados (filesystem, subagents)
+│  ├─ deepagents-cli/...        # Memory middleware tweaks
+│  └─ deepagents/...            # Custom filesystem + subagent middleware
 ├─ requirements.txt
-└─ README.md
+├─ README.md                    # English
+└─ README_pt.md                 # Portuguese
 ```
 
-## Personalização
+## Customization
 
+```
 Find remote AI Engineer roles hiring now aligned with my profile.
 
 # Scope
 - Focus: Senior AI/ML Engineer roles
-- Region: Americas (Remote, LATAM-friendly)
-- Tech: Python, LangChain, Vector DBs, LLM Ops
-- Exclude: Onsite-only, internships
+- Region: Americas (remote, LATAM-friendly)
+- Tech: Python, LangChain, vector DBs, LLM Ops
+- Exclude: Onsite-only roles, internships
+```
 
-----------------------------------------------------------------------------------------------------------------------------
+- **Prompt & scope** – edit `question.txt` to target a niche (LATAM-only, juniors, specific stacks, etc.).
+- **Fresh sources** – pass `time_range="day"` to Tavily in `internet_search` to bias toward today’s posts.
+- **Report history** – write `final_report_<YYYYMMDD>.md` inside a `reports/` directory instead of overwriting.
+- **Additional tools** – register new APIs (job boards, Slack, Sheets) and mount them through middleware.
+- **LangSmith metadata** – send tags via `agent.invoke(..., config={"metadata": {...}})` for easier analytics later.
 
-- **Prompt e consulta**: altere `question.txt` para direcionar o agente (ex.: focar em vagas sênior, LATAM etc.).
-- **Busca fresca**: em `research_agent.py`, ajuste `internet_search` para passar `time_range="day"` ao Tavily e garantir resultados do dia.
-- **Histórico de relatórios**: troque `Path("final_report.md").write_text(...)` por escrita com timestamps.
-- **Novas fontes**: adicione ferramentas extras (APIs de job boards, Slack, Google Sheets) e inclua nos subagentes.
-- **LangSmith**: monitore execuções habilitando `LANGCHAIN_TRACING_V2=true` e conferindo o projeto definido em `LANGCHAIN_PROJECT`.
+## Common Issues
 
-## Problemas Comuns
+- `KeyError: 'TAVILY_API_KEY'` – export the variable before running the agent.
+- `Failed to POST https://api.smith.langchain.com...` – LangSmith credentials or project missing; disable tracing if not needed.
+- `typing.NotRequired` warnings – already fixed by replacing annotations with standard optional types in middleware.
 
-- `KeyError: 'TAVILY_API_KEY'`: defina a variável antes de rodar.
-- `Failed to POST https://api.smith.langchain.com...`: `LANGCHAIN_API_KEY` ausente ou sem permissão; remova tracing se não for usar.
-- `typing.NotRequired` warnings: já eliminados nos middlewares (state schemas agora usam tipos opcionais padrão).
-
-## Rastreamento e Custos
+## Tracking and Cost Reporting
 
 ### LangSmith
-1. Ative o tracing exportando `LANGCHAIN_TRACING_V2=true`, `LANGCHAIN_API_KEY` e `LANGCHAIN_PROJECT`.
-2. Execute `python research_agent.py`. Cada chamada gera um **run** no LangSmith com toda a árvore de ferramentas, prompts e tokens.
-3. No painel do LangSmith, filtre pelo projeto definido e registre:
-   - Horário e descrição da execução (adicione `metadata` em `agent.invoke(...)` se quiser classificar consultas).
-   - Tabela de `prompt_tokens`, `completion_tokens`, `total_tokens` e custo estimado por execução.
+1. Export `LANGCHAIN_TRACING_V2=true`, `LANGCHAIN_API_KEY`, and `LANGCHAIN_PROJECT`.
+2. Run `python research_agent.py`; each execution creates a trace detailing tools, prompts, tokens, and latency.
+3. In LangSmith, filter by project and record:
+   - Timestamp plus a short label (use `metadata` to tag runs automatically).
+   - `prompt_tokens`, `completion_tokens`, `total_tokens`, and estimated cost.
+4. Capture screenshots or use **Export CSV** to share results. Example table:
 
-   <img width="1919" height="912" alt="image" src="https://github.com/user-attachments/assets/e9003486-e529-454c-b784-2acafcd481dd" />
+| Run        | Query                               | Prompt Tokens | Completion Tokens | Cost (USD) |
+|------------|-------------------------------------|---------------|-------------------|------------|
+| 2024-06-30 AM | Find remote AI Engineer roles...     | 6,245         | 4,108             | $0.21      |
+| 2024-06-30 PM | Senior AI roles LATAM-friendly       | 7,002         | 4,887             | $0.24      |
 
+### OpenAI usage dashboard
 
-   | Execução | Consulta | Prompt Tokens | Completion Tokens | Custo (USD) |
-   |----------|----------|---------------|-------------------|-------------|
-   | 2024-06-30 AM | “Find remote AI Engineer roles…” | 6 245 | 4 108 | $0.21 |
-   | 2024-06-30 PM | “Senior AI roles LATAM-friendly” | 7 002 | 4 887 | $0.24 |
+- Review the official ledger at [https://platform.openai.com/usage](https://platform.openai.com/usage).
+- Capture `result["usage"]` after `agent.invoke(...)` and append it to `reports/usage_logs/YYYYMMDD.json`.
+- Summarize monthly totals inside the README or a `docs/usage.md`.
 
-### Portal da OpenAI / Usage API
-- Acesse [https://platform.openai.com/usage](https://platform.openai.com/usage) para validar os mesmos números diários.
-- Opcionalmente, capture `result["usage"]` após `agent.invoke(...)` e grave em `reports/usage_logs/YYYYMMDD.json`.
-- Adicione um resumo mensal no README ou em `docs/usage.md`, com totais por tipo de modelo e custo acumulado.
+## Sample Output
 
-  <img width="1917" height="964" alt="image" src="https://github.com/user-attachments/assets/207e8544-6de6-4fcc-b2cd-3cdd27c780e5" />
-
-
-# Resultados Esperados (exemplo de 1 execução)
-
+```
 # Remote AI Engineer Opportunities Brief
 
 ## Market Snapshot
-Based on the latest searches for remote AI Engineer roles, there is a significant demand for skilled professionals in this field. The market reflects an enthusiastic hiring climate, as employers actively seek talent across various sectors. The typical salary for remote AI Engineers ranges widely due to differences in experience levels and specific job requirements. Many organizations are embracing remote work, allowing for a larger talent pool across different geographic regions.
+Remote hiring remains strong across AI-first companies, with openings from junior to staff levels. Employers value end-to-end ML ownership, production LLM expertise, and timezone overlap with the Americas.
 
 ## Active Remote Employers
-1. **Remote Rocketship**  
-   - **Type**: Job aggregator platform listing various remote opportunities.  
-   - **Focus**: Variety of roles including AI Engineers, Data Scientists, and Machine Learning Engineers.  
-   - **Hiring Stage**: Actively hiring, with thousands of openings in the AI domain.  
-
-2. **Crossover**  
-   - **Type**: Recruitment platform focused on finding top talent for tech positions.  
-   - **Focus**: AI Engineer roles, with a keen interest in high-performance candidates.  
-   - **Hiring Stage**: Actively searching for engineers, allowing candidates to apply easily.  
-
-3. **Indeed & ZipRecruiter**  
-   - **Type**: Job listing platforms aggregating postings from various companies.  
-   - **Focus**: Broad range of positions in AI engineering across different sectors.  
-   - **Hiring Stage**: Continuously updated job listings, ensuring the latest opportunities are available.  
+- Tech.co – distributed engineering squads with heavy AI roadmaps.
+- Hiring Agents – boutique recruiter listing mid/senior roles up to $282K.
+- Indeed – ~1,900 remote AI/ML postings refreshed daily.
+- Remote Rocketship – curated feed for junior AI Engineers.
+- LinkedIn – 74k+ remote-first AI roles worldwide.
 
 ## Representative Openings
-1. **AI Engineer at Remote Rocketship**  
-   - **URL**: [Remote Rocketship](https://www.remoterocketship.com/jobs/ai-engineer/)  
-   - **Compensation**: Average salary around $159,120/year based on several openings.  
-   - **Skills Required**: Deep learning, machine learning algorithms, programming in Python/R.
+1. Staff AI Engineer @ Curai Health (US) – builds LLM infrastructure and evaluation loops.
+2. Senior AI Engineer @ Jitterbit (India) – focuses on integration-centric AI services.
+3. AI Engineer Level IV @ Premera (US) – healthcare analytics and ML platforms.
+4. AI Developer @ BambooWorks (US) – productizes AI copilots for enterprise clients.
 
-2. **AI Engineer at Crossover**  
-   - **URL**: [Crossover](https://www.crossover.com/jobs/ai-engineer)  
-   - **Compensation**: Positions starting around $60,000/year; varies with experience.  
-   - **Skills Required**: Knowledge in AI frameworks, algorithms, and software development.  
-
-3. **AI Engineer Roles on Indeed**  
-   - **URL**: [Indeed](https://www.indeed.com/q-artificial-intelligence-engineer-l-remote-jobs.html)  
-   - **Compensation**: Ranges from $188,000 to $238,000/year; varies extensively by listing.  
-   - **Skills Required**: Strong coding skills in modern programming languages and experience with AI tools.  
-
-## Required Skills & Tech Stack
-- **Programming Languages**: Python, R, Java, C++.
-- **Frameworks**: TensorFlow, PyTorch, Keras for deep learning and neural networks.
-- **Algos**: Understanding of machine learning algorithms, including regression, classification, and clustering.
-- **DevOps**: Familiarity with cloud platforms like AWS and Google Cloud for AI deployments.
-- **Software Development**: Version control (Git), agile methodologies, and general software engineering practices.
+## Required Skills & Stack
+Python or Java for production services, data modeling, ML deployment/monitoring, MLOps on AWS/GCP, vector database fluency, and strong grounding in AI ethics/bias mitigation.
 
 ## Compensation & Location Notes
-- **Salary Insights**: Average salaries generally range from $100,000 to $245,000/year. Entry-level positions start around $60,000, while senior roles can command salaries over $200,000.
-- **Location**: While roles are remote, be mindful of company stipulations on time zones or geographical locations that may not be eligible for all roles.
-- **Visa/Contractual**: Some positions may require you to be in specific jurisdictions due to legal and tax compliance issues.
+Typical ranges span $100K–$240K for remote IC roles; some employers accept global applicants while others prefer US/EU coverage.
 
 ## Application Strategy
-- Leverage job boards like Indeed and ZipRecruiter for targeted applications.  
-- Tailor your resume to highlight relevant experiences and accomplishments in AI engineering.  
-- Networking through LinkedIn can help establish connections that may lead to referrals.  
-- Consider obtaining certifications in AI to differentiate yourself from other candidates.
+Network via LinkedIn, monitor curated remote boards, tailor resumes per posting, and highlight shipped AI systems or OSS work.
 
 ## Sources
-1. [Remote AI Engineer Jobs – Remote Rocketship](https://www.remoterocketship.com/jobs/ai-engineer/)
-2. [AI Engineer jobs in Remote - Indeed](https://www.indeed.com/q-artificial-intelligence-engineer-l-remote-jobs.html)
-3. [2025 AI Engineer Salary in Remote - Built In](https://builtin.com/salaries/us/remote/ai-engineer)
-4. [Remote Ai Engineer Jobs - ZipRecruiter](https://www.ziprecruiter.com/Jobs/Remote-Ai-Engineer)
-5. [Remote AI Engineer Jobs - Crossover](https://www.crossover.com/jobs/ai-engineer)
-
-VS Code execution result
-
-<img width="1915" height="1013" alt="image" src="https://github.com/user-attachments/assets/0adb2ef4-2504-4258-a37d-8fdc932e3066" />
-
+1. Tech.co – Remote Jobs
+2. Hiring Agents – AI Engineer listings
+3. Indeed – Remote AI Engineer jobs
+4. Remote Rocketship – Junior AI Engineer feed
+5. LinkedIn – Remote AI jobs
+```
 
 ## Roadmap
 
-- Persistir histórico diário em uma pasta `reports/`.
-- Adicionar testes de regressão para os middlewares customizados.
-- Automatizar publicação (ex.: GitHub Actions que roda o agente e faz commit do relatório diário).
-- Adicionar um front end para melhor interação com o usuário final que não conhece em profundidade ferramentas como Python, VS Code
-- Adicionar e ajustar o modelo para rotacionar o modelo visando otimizar custos ou até detalhes da execução (LLM Routing)
+- Persist daily reports inside `reports/`.
+- Add regression tests for the customized middleware.
+- Automate daily execution + publishing (for example, GitHub Actions committing the latest report).
 
-## Créditos
+## Credits
 
-- Baseado em [DeepAgents](https://github.com/langchain-ai/deepagents) e sua arquitetura de agentes profundos.
-- Inspiração de produtos como Claude Code, Deep Research e Manus.
-
-Sinta-se à vontade para abrir issues ou PRs com melhorias!
+- Based on [DeepAgents](https://github.com/langchain-ai/deepagents) and its deep-agent architecture.
+- Inspired by tools such as Claude Code, Anthropic Deep Research, and Manus.
