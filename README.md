@@ -203,6 +203,9 @@ Based on the latest searches for remote AI Engineer roles, there is a significan
 4. [Remote Ai Engineer Jobs - ZipRecruiter](https://www.ziprecruiter.com/Jobs/Remote-Ai-Engineer)
 5. [Remote AI Engineer Jobs - Crossover](https://www.crossover.com/jobs/ai-engineer)
 
+VS Code execution result
+
+<img width="1915" height="1013" alt="image" src="https://github.com/user-attachments/assets/0adb2ef4-2504-4258-a37d-8fdc932e3066" />
 
 
 ## Roadmap
