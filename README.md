@@ -122,7 +122,9 @@ Find remote AI Engineer roles hiring now aligned with my profile.
 3. No painel do LangSmith, filtre pelo projeto definido e registre:
    - Horário e descrição da execução (adicione `metadata` em `agent.invoke(...)` se quiser classificar consultas).
    - Tabela de `prompt_tokens`, `completion_tokens`, `total_tokens` e custo estimado por execução.
-4. Para divulgar no README, capture screenshots dos gráficos ou use o botão **Export CSV** para montar uma tabela como:
+
+   <img width="1919" height="912" alt="image" src="https://github.com/user-attachments/assets/e9003486-e529-454c-b784-2acafcd481dd" />
+
 
    | Execução | Consulta | Prompt Tokens | Completion Tokens | Custo (USD) |
    |----------|----------|---------------|-------------------|-------------|
