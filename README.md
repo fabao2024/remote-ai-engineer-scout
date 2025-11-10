@@ -3,7 +3,7 @@
 ![CI](https://github.com/<SEU_USER>/<SEU_REPO>/actions/workflows/ci.yml/badge.svg)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-# Remote AI Engineer Scout
+# 🧠🤖Remote AI Engineer Scout
 
 <img width="608" height="605" alt="image" src="https://github.com/user-attachments/assets/3c2cd325-c458-4cf1-a49c-92be0fb34fd5" />
 
@@ -123,6 +123,9 @@ Find remote AI Engineer roles hiring now aligned with my profile.
 ## Tracking and Cost Reporting
 
 ### LangSmith
+
+![Remote AI Engineer Scout_2](https://github.com/user-attachments/assets/8c522ff0-0136-44b6-9a5e-25d36950538f)
+
 1. Export `LANGCHAIN_TRACING_V2=true`, `LANGCHAIN_API_KEY`, and `LANGCHAIN_PROJECT`.
 2. Run `python research_agent.py`; each execution creates a trace detailing tools, prompts, tokens, and latency.
 3. In LangSmith, filter by project and record:
@@ -137,11 +140,17 @@ Find remote AI Engineer roles hiring now aligned with my profile.
 
 ### OpenAI usage dashboard
 
+![Remote AI Engineer Scout_4_dash openAI](https://github.com/user-attachments/assets/f519ee97-90a0-4804-9261-13d70f5eb21e)
+
+
 - Review the official ledger at [https://platform.openai.com/usage](https://platform.openai.com/usage).
 - Capture `result["usage"]` after `agent.invoke(...)` and append it to `reports/usage_logs/YYYYMMDD.json`.
 - Summarize monthly totals inside the README or a `docs/usage.md`.
 
 ## Sample Output
+
+![Remote AI Engineer Scout_3](https://github.com/user-attachments/assets/018c2a1d-a0c9-437c-a749-e17685328d29)
+
 
 ```
 # Remote AI Engineer Opportunities Brief
@@ -184,6 +193,7 @@ Network via LinkedIn, monitor curated remote boards, tailor resumes per posting,
 - Persist daily reports inside `reports/`.
 - Add regression tests for the customized middleware.
 - Automate daily execution + publishing (for example, GitHub Actions committing the latest report).
+- add LLM routing for better ROI
 
 ## Credits
 
