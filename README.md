@@ -86,11 +86,15 @@ Execution flow:
 ```
 .
 ├─ research_agent.py            # Agent wiring + subagent definitions
+├─ send_report_email.py         # Email sender utility
 ├─ question.txt                 # Prompt used for each run
 ├─ final_report.md              # Latest generated report
+├─ reports/                     # Timestamped daily reports (auto-created)
 ├─ libs/
 │  ├─ deepagents-cli/...        # Memory middleware tweaks
 │  └─ deepagents/...            # Custom filesystem + subagent middleware
+├─ .github/workflows/
+│  └─ daily-report.yml          # GitHub Actions automation
 ├─ requirements.txt
 ├─ README.md                    # English
 └─ README_pt.md                 # Portuguese
@@ -188,11 +192,104 @@ Network via LinkedIn, monitor curated remote boards, tailor resumes per posting,
 5. LinkedIn – Remote AI jobs
 ```
 
+## Automation & Daily Reports
+
+> ⚠️ **SECURITY WARNING**: This is a **public repository**. Never commit API keys to your code!
+> All API keys must be stored in [GitHub Secrets](https://docs.github.com/en/actions/security-guides/using-secrets-in-github-actions). See [Security section](#security--api-key-safety) below.
+
+The repository includes a GitHub Actions workflow (`.github/workflows/daily-report.yml`) that automatically:
+
+1. **Runs daily at 8:00 AM UTC** (configurable)
+2. **Executes the research agent** to gather fresh job listings
+3. **Saves timestamped reports** to the `reports/` directory
+4. **Emails the report** to your inbox
+
+### Setup Instructions
+
+#### 1. Required GitHub Secrets
+
+Configure these secrets in your repository settings (`Settings > Secrets and variables > Actions`):
+
+| Secret | Required | Description |
+|--------|----------|-------------|
+| `OPENAI_API_KEY` | Yes | Your OpenAI API key |
+| `TAVILY_API_KEY` | Yes | Your Tavily API key for web search |
+| `EMAIL_TO` | Yes | Recipient email (default: `fabio.pettian@gmail.com`) |
+| `EMAIL_FROM` | Yes | Sender email address |
+| `EMAIL_PASSWORD` | Yes | App password for sender email |
+| `SMTP_SERVER` | No | SMTP server (default: `smtp.gmail.com`) |
+| `SMTP_PORT` | No | SMTP port (default: `587`) |
+| `LANGCHAIN_API_KEY` | No | For LangSmith tracing |
+| `LANGCHAIN_TRACING_V2` | No | Set to `true` to enable tracing |
+| `LANGCHAIN_PROJECT` | No | LangSmith project name |
+
+#### 2. Gmail App Password Setup
+
+If using Gmail as your sender:
+
+1. Enable 2-Factor Authentication on your Google account
+2. Generate an **App Password** at [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords)
+3. Use this app password as `EMAIL_PASSWORD` (not your regular password)
+
+#### 3. Manual Trigger
+
+You can manually trigger the workflow anytime:
+- Go to **Actions > Daily AI Engineer Scout Report** in your GitHub repository
+- Click **Run workflow**
+
+### Email Report Format
+
+The email includes:
+- **HTML version** with formatted report content
+- **Plain text version** for compatibility
+- **Markdown attachment** for easy saving/sharing
+
+**Note on storing reports:** By default, reports are committed to the repository. If you prefer not to store reports in git:
+1. Uncomment the `# reports/` line in `.gitignore`
+2. Modify the workflow to remove the "Commit report to repository" step
+
+## Security & API Key Safety
+
+Since this is a **public repository**, follow these strict rules:
+
+### ✅ SAFE - Use GitHub Secrets
+API keys are stored encrypted in GitHub and only exposed to Actions at runtime:
+
+```yaml
+env:
+  OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}  # ✅ Safe
+```
+
+### ❌ NEVER DO THIS
+```python
+# Hardcoding keys in code
+openai.api_key = "sk-..."  # ❌ NEVER!
+
+# Committing .env files
+OPENAI_API_KEY=sk-...  # ❌ NEVER commit .env!
+```
+
+### Protected by .gitignore
+The following patterns are blocked from being committed:
+- `.env`, `.envrc`, `.env*.local`
+- `*.pem`, `*.key`
+- `secrets/`, `secrets.*`
+- `config.local.json`, `credentials.json`
+
+### If You Accidentally Expose a Key
+1. **Revoke immediately** in the provider's dashboard:
+   - [OpenAI](https://platform.openai.com/api-keys)
+   - [Anthropic](https://console.anthropic.com/settings/keys)
+   - [Tavily](https://app.tavily.com/home)
+2. Generate a new key
+3. Update the GitHub Secret
+4. Consider the old key compromised (even if removed from git, it's in history)
+
 ## Roadmap
 
-- Persist daily reports inside `reports/`.
+- [x] Persist daily reports inside `reports/`.
+- [x] Automate daily execution + email delivery
 - Add regression tests for the customized middleware.
-- Automate daily execution + publishing (for example, GitHub Actions committing the latest report).
 - add LLM routing for better ROI
 
 ## Credits

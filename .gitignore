@@ -221,3 +221,17 @@ __marimo__/
 Thumbs.db
 
 .idea
+
+# Daily reports (uncomment if you don't want to commit reports to git)
+# reports/
+
+# API Keys and Secrets (safety first!)
+# These patterns ensure no API keys accidentally get committed
+*.pem
+*.key
+secrets/
+secrets.*
+config.local.json
+credentials.json
+token.json
+.env*.local

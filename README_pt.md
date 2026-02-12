@@ -86,11 +86,15 @@ Fluxo:
 ```
 .
 ├─ research_agent.py            # Configuração principal do agente
+├─ send_report_email.py         # Utilitário de envio de email
 ├─ question.txt                 # Prompt base
 ├─ final_report.md              # Último relatório gerado
+├─ reports/                     # Relatórios diários com timestamp (auto-criado)
 ├─ libs/
 │  ├─ deepagents-cli/...        # Ajustes do middleware de memória
 │  └─ deepagents/...            # Filesystem + subagents customizados
+├─ .github/workflows/
+│  └─ daily-report.yml          # Automação do GitHub Actions
 ├─ requirements.txt
 ├─ README.md                    # Em inglês
 └─ README_pt.md                 # Em português
@@ -179,11 +183,105 @@ Faça networking no LinkedIn, monitore job boards remotos, personalize o CV por 
 5. LinkedIn – Remote AI jobs
 ```
 
+## Automação e Relatórios Diários
+
+> ⚠️ **AVISO DE SEGURANÇA**: Este é um repositório **público**. Nunca commite chaves de API no seu código!
+> Todas as chaves devem ser armazenadas em [GitHub Secrets](https://docs.github.com/pt/actions/security-guides/using-secrets-in-github-actions). Veja a [seção de Segurança](#segurança-e-proteção-de-chaves) abaixo.
+
+O repositório inclui um workflow do GitHub Actions (`.github/workflows/daily-report.yml`) que automaticamente:
+
+1. **Executa diariamente às 8:00 UTC** (configurável)
+2. **Roda o agente de pesquisa** para coletar vagas atualizadas
+3. **Salva relatórios com timestamp** no diretório `reports/`
+4. **Envia o relatório por email** para sua caixa de entrada
+
+### Instruções de Configuração
+
+#### 1. Secrets Necessários no GitHub
+
+Configure estes secrets nas configurações do repositório (`Settings > Secrets and variables > Actions`):
+
+| Secret | Obrigatório | Descrição |
+|--------|-------------|-----------|
+| `OPENAI_API_KEY` | Sim | Sua chave API da OpenAI |
+| `TAVILY_API_KEY` | Sim | Chave API do Tavily para busca web |
+| `EMAIL_TO` | Sim | Email do destinatário (padrão: `fabio.pettian@gmail.com`) |
+| `EMAIL_FROM` | Sim | Email do remetente |
+| `EMAIL_PASSWORD` | Sim | Senha de app do email remetente |
+| `SMTP_SERVER` | Não | Servidor SMTP (padrão: `smtp.gmail.com`) |
+| `SMTP_PORT` | Não | Porta SMTP (padrão: `587`) |
+| `LANGCHAIN_API_KEY` | Não | Para rastreamento LangSmith |
+| `LANGCHAIN_TRACING_V2` | Não | Defina como `true` para ativar rastreamento |
+| `LANGCHAIN_PROJECT` | Não | Nome do projeto no LangSmith |
+
+#### 2. Configuração de Senha de App do Gmail
+
+Se usar Gmail como remetente:
+
+1. Ative a Autenticação de 2 Fatores na sua conta Google
+2. Gere uma **Senha de App** em [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords)
+3. Use esta senha de app como `EMAIL_PASSWORD` (não sua senha regular)
+
+#### 3. Execução Manual
+
+Você pode executar o workflow manualmente a qualquer momento:
+- Vá para **Actions > Daily AI Engineer Scout Report** no seu repositório GitHub
+- Clique em **Run workflow**
+
+### Formato do Email
+
+O email inclui:
+- **Versão HTML** com conteúdo formatado do relatório
+- **Versão texto** para compatibilidade
+- **Anexo Markdown** para fácil salvamento/compartilhamento
+
+**Nota sobre armazenamento de relatórios:** Por padrão, os relatórios são commitados no repositório. Se preferir não armazenar relatórios no git:
+1. Descomente a linha `# reports/` no `.gitignore`
+2. Modifique o workflow para remover o step "Commit report to repository"
+
+## Segurança e Proteção de Chaves
+
+Como este é um **repositório público**, siga estas regras estritas:
+
+### ✅ SEGURO - Use GitHub Secrets
+Chaves de API são armazenadas criptografadas no GitHub e expostas apenas aos Actions em tempo de execução:
+
+```yaml
+env:
+  OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}  # ✅ Seguro
+```
+
+### ❌ NUNCA FAÇA ISSO
+```python
+# Hardcoding de chaves no código
+openai.api_key = "sk-..."  # ❌ NUNCA!
+
+# Commitar arquivos .env
+OPENAI_API_KEY=sk-...  # ❌ NUNCA commite .env!
+```
+
+### Protegido pelo .gitignore
+Os seguintes padrões estão bloqueados de serem commitados:
+- `.env`, `.envrc`, `.env*.local`
+- `*.pem`, `*.key`
+- `secrets/`, `secrets.*`
+- `config.local.json`, `credentials.json`
+
+### Se Você Expor uma Chave Acidentalmente
+1. **Revogue imediatamente** no painel do provedor:
+   - [OpenAI](https://platform.openai.com/api-keys)
+   - [Anthropic](https://console.anthropic.com/settings/keys)
+   - [Tavily](https://app.tavily.com/home)
+2. Gere uma nova chave
+3. Atualize o GitHub Secret
+4. Considere a chave antiga comprometida (mesmo removida do git, está no histórico)
+
 ## Roadmap
 
-- Persistir relatórios diários em `reports/`.
+- [x] Persistir relatórios diários em `reports/`.
+- [x] Automatizar execução diária + envio por email
 - Adicionar testes de regressão para os middlewares customizados.
-- Automatizar execução/publicação diária (ex.: GitHub Actions que dá commit no relatório mais recente).
+- Adicionar roteamento de LLM para melhor ROI
 
 ## Créditos
 

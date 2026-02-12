@@ -1,42 +1,66 @@
 # Remote AI Engineer Opportunities Brief
 
 ## Market Snapshot
-The remote job market for AI Engineers has been witnessing a rise in openings, particularly with companies emphasizing flexibility and the need for skilled professionals capable of developing AI systems. Roles are available for various experience levels, promising an array of opportunities for newcomers as well as seasoned engineers.
+The demand for AI Engineers continues to grow, with numerous companies actively hiring for remote positions. The roles vary in focus, from generative AI to applied machine learning, reflecting the diverse applications of AI technology in various industries.
 
 ## Active Remote Employers
-- **Tech.co**: Focus on diverse technical roles including AI positions.
-- **Hiring Agents**: Positions ranging from mid to senior levels in AI Engineering with salaries up to $282K.
-- **Indeed**: Vast job offerings with 1928 openings for AI roles.
-- **Remote Rocketship**: 17 openings specifically for Remote Junior AI Engineer roles.
-- **LinkedIn**: 74000+ remote AI jobs available across multiple industries.
+Several companies are currently hiring for remote AI Engineer positions, including:
+- Crossover
+- Jobgether
+- Various companies listed on job boards like ZipRecruiter and Indeed.
 
 ## Representative Openings
-1. **Staff AI Engineer** at Curai Health - [Job Link](https://www.remoterocketship.com/company/curai-health/jobs/staff-ai-engineer-united-states-remote/).
-2. **Senior AI Engineer** at Jitterbit - [Job Link](https://www.remoterocketship.com/company/jitterbit/jobs/senior-ai-engineer-india-remote/).
-3. **AI Engineer – Level IV** at Premera - [Job Link](https://www.remoterocketship.com/company/premera/jobs/ai-engineer-level-iv-united-states-remote/).
-4. **AI Developer** at BambooWorks - [Job Link](https://www.remoterocketship.com/company/bambooworks-io-2/jobs/ai-developer-specialist-united-states-remote/).
+1. **Remote Senior AI Engineer**  
+   - **Company**: Various  
+   - **Compensation**: $104k - $230k  
+   - **Core Skills**: AI development, machine learning, Python, TensorFlow.
+   - **Location Constraints**: Open to various locations.  
+   - **Application Link**: [ZipRecruiter](https://www.ziprecruiter.com/Jobs/Remote-Senior-Ai-Engineer)
+
+2. **Remote Generative AI Engineer**  
+   - **Company**: Various  
+   - **Compensation**: $83k - $200k  
+   - **Core Skills**: Generative models, deep learning, Python.
+   - **Location Constraints**: Open to various locations.  
+   - **Application Link**: [ZipRecruiter](https://www.ziprecruiter.com/Jobs/Remote-Generative-Ai-Engineer)
+
+3. **Artificial Intelligence Engineer, LearnWith.AI**  
+   - **Company**: Crossover  
+   - **Compensation**: $200,000/year  
+   - **Core Skills**: Machine learning, data science, Python, Kubernetes.
+   - **Location Constraints**: Remote from Canada.  
+   - **Application Link**: [LinkedIn](https://ca.linkedin.com/jobs/view/artificial-intelligence-engineer-learnwith-ai-remote-%24200-000-year-usd-at-crossover-4366048488)
+
+4. **Applied AI Engineer**  
+   - **Company**: Jobgether  
+   - **Core Skills**: AI feature design, machine learning.
+   - **Location Constraints**: Remote from Canada.  
+   - **Application Link**: [LinkedIn](https://ca.linkedin.com/jobs/view/applied-ai-engineer-remote-from-canada-at-jobgether-4366141707)
+
+5. **AI Engineer (Various Positions)**  
+   - **Company**: Multiple  
+   - **Compensation**: Varies widely.  
+   - **Core Skills**: AI/ML engineering, data analysis.
+   - **Location Constraints**: Open to various locations.  
+   - **Application Link**: [Indeed](https://ca.indeed.com/q-ai-engineer-l-remote-jobs.html)
 
 ## Required Skills & Tech Stack
-Proficiency in key skills is essential for aspiring AI Engineers:
-- **Programming Languages**: Python, Java, R.
-- **Data Skills**: Data modeling, data cleaning, and visualization (Matplotlib, Tableau).
-- **Machine Learning Techniques**: Understanding of ML algorithms and models, including experience in deployment and monitoring.
-- **Development Tools**: Familiarity with platforms and services that support AI and ML (e.g., AWS, GCP).
-- Knowledge of AI ethics and bias management.
+- Proficiency in programming languages such as Python.
+- Experience with AI frameworks like TensorFlow, PyTorch, or similar.
+- Strong understanding of machine learning algorithms and data structures.
+- Familiarity with cloud platforms and deployment strategies.
 
 ## Compensation & Location Notes
-- The average salary for remote AI Engineers varies from $101,752 to $240,108, depending on experience and specific role.
-- Remote roles are primarily available across the US, Europe, and parts of Asia, with some companies open to global talent.
+- Compensation ranges from $83k to $230k depending on the role and company.
+- Most positions are open to candidates from various locations, with some specific to Canada.
 
 ## Application Strategy
-- **Networking**: Utilize platforms like LinkedIn and Indeed to connect with professionals in the field and stay updated on openings.
-- **Automate Applications**: Consider tools that can help automate job applications, allowing for faster and broader outreach.
-- **Tailored Resumes**: Customize your resume and applications to align with the specific requirements of each job posting.
-- **Portfolio Development**: Showcase past projects or contributions to open source that highlight relevant skills and experience.
+- Tailor your resume to highlight relevant skills and experiences.
+- Apply as soon as possible due to the competitive nature of these roles.
 
 ## Sources
-1. [Tech.co](https://tech.co/news/remote-jobs-apply-october)
-2. [Hiring Agents](https://hiringagents.ai/jobs/list/ai-engineer-jobs-boston)
-3. [Indeed AI Jobs](https://www.indeed.com/q-artificial-intelligence-engineer-l-remote-jobs.html)
-4. [Remote Rocketship Junior AI Jobs](https://www.remoterocketship.com/country/united-states/jobs/junior-ai-engineer/)
-5. [LinkedIn Remote AI Jobs](https://www.linkedin.com/jobs/remote-ai-jobs-jobs)
+- [Remote Senior AI Engineer Jobs - ZipRecruiter](https://www.ziprecruiter.com/Jobs/Remote-Senior-Ai-Engineer)
+- [Remote Generative AI Engineer Jobs - ZipRecruiter](https://www.ziprecruiter.com/Jobs/Remote-Generative-Ai-Engineer)
+- [Artificial Intelligence Engineer, LearnWith.AI - LinkedIn](https://ca.linkedin.com/jobs/view/artificial-intelligence-engineer-learnwith-ai-remote-%24200-000-year-usd-at-crossover-4366048488)
+- [Applied AI Engineer - Jobgether - LinkedIn](https://ca.linkedin.com/jobs/view/applied-ai-engineer-remote-from-canada-at-jobgether-4366141707)
+- [AI Engineer Jobs - Indeed](https://ca.indeed.com/q-ai-engineer-l-remote-jobs.html)

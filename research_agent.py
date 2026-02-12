@@ -2,6 +2,9 @@ import os
 from pathlib import Path
 from typing import Literal
 
+from dotenv import load_dotenv
+load_dotenv()
+
 from deepagents import create_deep_agent
 from langchain.chat_models import init_chat_model
 from tavily import TavilyClient
@@ -109,7 +112,10 @@ Available tool:
 Use it to discover current remote AI Engineer roles and supporting information."""
 
 # Configure the chat model (ensure OPENAI_API_KEY is set)
-model = init_chat_model("openai:gpt-4o-mini")
+from llm_router import get_llm
+
+# Configure the chat model (ensure OPENAI_API_KEY or ZHIPUAI_API_KEY is set)
+model = get_llm(os.environ.get("LLM_MODEL", "openai:gpt-4o-mini"))
 
 # Build the agent with the research and critique subagents
 agent = create_deep_agent(
