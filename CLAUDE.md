@@ -6,14 +6,12 @@
 
 **Name:** Remote AI Engineer Scout
 **Purpose:** Automated daily research agent that finds remote AI Engineer job opportunities using DeepAgents + LangChain + Tavily
-**Target Email:** fabio.pettian@gmail.com
-
 **Core Functionality:**
 - Runs `research_agent.py` to search for remote AI Engineer roles
 - Uses GPT-4o-mini via OpenAI API
 - Searches live web via Tavily API
 - Generates structured Markdown reports
-- Emails reports daily at 8:00 AM UTC
+- Sends reports daily at 8:00 AM UTC via Telegram bot
 
 ## Architecture
 
@@ -23,7 +21,7 @@ User/Scheduler → GitHub Actions → research_agent.py
                                      │   ├─ research-agent (uses Tavily)
                                      │   └─ critique-agent
                                      ├─ Outputs: final_report.md
-                                     └─ Emails via: send_report_email.py
+                                     └─ Sends via: send_report_telegram.py
 ```
 
 ## Key Files
@@ -31,7 +29,7 @@ User/Scheduler → GitHub Actions → research_agent.py
 | File | Purpose |
 |------|---------|
 | `research_agent.py` | Main agent orchestration with subagents |
-| `send_report_email.py` | Email delivery utility (SMTP) |
+| `send_report_telegram.py` | Telegram bot report delivery |
 | `question.txt` | Base prompt for job searches |
 | `final_report.md` | Latest generated report |
 | `reports/` | Timestamped historical reports |
@@ -45,10 +43,10 @@ User/Scheduler → GitHub Actions → research_agent.py
 - Tavily integration for live web search
 - Markdown report generation
 
-### Phase 2: Automation + Email (Just Completed)
+### Phase 2: Automation + Telegram (Completed)
 - GitHub Actions workflow for daily execution
-- `send_report_email.py` with HTML/text/attachment support
-- Gmail SMTP integration
+- `send_report_telegram.py` with Markdown message + file attachment
+- Telegram bot integration
 - Timestamped report archiving in `reports/`
 - Auto-commit to repository
 
@@ -76,21 +74,13 @@ $env:LANGCHAIN_PROJECT = "remote-ai-scout"  # Optional
 |--------|----------|-------------|
 | `OPENAI_API_KEY` | Yes | OpenAI API key |
 | `TAVILY_API_KEY` | Yes | Tavily search API |
-| `EMAIL_TO` | Yes | `fabio.pettian@gmail.com` |
-| `EMAIL_FROM` | Yes | Sender Gmail address |
-| `EMAIL_PASSWORD` | Yes | Gmail App Password (not regular password) |
-| `SMTP_SERVER` | No | Default: `smtp.gmail.com` |
-| `SMTP_PORT` | No | Default: `587` |
+| `TELEGRAM_BOT_TOKEN` | Yes | Telegram bot token from @BotFather |
+| `TELEGRAM_CHAT_ID` | Yes | Telegram chat ID for report delivery |
 | `LANGCHAIN_API_KEY` | No | For LangSmith tracing |
 | `LANGCHAIN_TRACING_V2` | No | Set `true` to enable |
 | `LANGCHAIN_PROJECT` | No | LangSmith project name |
 | `ZHIPUAI_API_KEY` | No | For Z.AI/ZhipuAI models |
 | `LLM_MODEL` | No | `openai:gpt-4o-mini` (default) or `zhipu:glm-4.7` |
-
-**Gmail App Password Setup:**
-1. Enable 2FA on Google account
-2. Generate at: https://myaccount.google.com/apppasswords
-3. Use 16-char app password (not your login password)
 
 ## Running the Project
 
@@ -104,8 +94,8 @@ pip install -r requirements.txt  # or: uv sync --frozen
 # Run agent
 python research_agent.py
 
-# Send email manually (if configured)
-python send_report_email.py
+# Send report via Telegram
+python send_report_telegram.py
 ```
 
 ### Via GitHub Actions:
@@ -120,10 +110,10 @@ python send_report_email.py
 - **Daily at 8:00 AM UTC** (configurable in `daily-report.yml`)
 - Cron: `'0 8 * * *'`
 
-### Email Format:
-- HTML version with styled report
-- Plain text fallback
-- Markdown file attachment
+### Telegram Delivery:
+- Markdown formatted message
+- `.md` file attachment
+- Push notification to your phone
 
 ### Report Storage:
 - `final_report.md` - always latest
@@ -135,7 +125,7 @@ python send_report_email.py
 ### Completed:
 - [x] Core research agent with DeepAgents
 - [x] Daily automation via GitHub Actions
-- [x] Email delivery to fabio.pettian@gmail.com
+- [x] Telegram bot delivery
 - [x] Timestamped report archiving
 - [x] Documentation in README.md and README_pt.md
 
@@ -144,7 +134,7 @@ python send_report_email.py
 1. **Add Regression Tests for Middleware**
    - Test custom filesystem middleware
    - Test subagent spawning
-   - Test email sender
+   - Test Telegram sender
    - Add to GitHub Actions CI
 
 2. **Refine Z.AI Integration**
@@ -177,7 +167,7 @@ python send_report_email.py
 - `langchain-community` + `zhipuai` (for Z.AI support)
 - `python-dotenv` (for local env vars)
 - `tavily-python>=0.7.12`
-- Standard library only for email (`smtplib`, `email.mime`)
+- `httpx` (for Telegram API calls)
 
 ### Project Structure:
 ```
@@ -191,7 +181,7 @@ remote-ai-engineer-scout/
 ├── reports/                      # Generated reports (auto-created)
 ├── research_agent.py             # Main agent
 ├── llm_router.py                 # LLM provider logic
-├── send_report_email.py          # Email utility
+├── send_report_telegram.py       # Telegram bot delivery
 ├── question.txt                  # Search prompt
 ├── final_report.md               # Latest output
 ├── pyproject.toml                # Project config
@@ -211,14 +201,14 @@ remote-ai-engineer-scout/
 7. Generate timestamp
 8. Copy report to reports/
 9. Commit to repository
-10. Send email (with SMTP secrets)
+10. Send report via Telegram bot
 
 ## Common Issues & Solutions
 
-### Email Not Sending:
-- Check `EMAIL_PASSWORD` is Gmail App Password, not login password
-- Verify `EMAIL_FROM` and `EMAIL_TO` are set correctly
-- Check SMTP server/port if not using Gmail
+### Telegram Not Sending:
+- Verify `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` are set
+- Make sure you started a chat with the bot (sent it at least one message)
+- Check bot token is valid via `https://api.telegram.org/bot<TOKEN>/getMe`
 
 ### Agent Fails:
 - Verify `OPENAI_API_KEY` and `TAVILY_API_KEY` are set
@@ -231,12 +221,10 @@ remote-ai-engineer-scout/
 
 ## Recent Changes (Last Session)
 
-1. Created `.github/workflows/daily-report.yml` - Full automation
-2. Created `send_report_email.py` - Email delivery with HTML/text/attachment
-3. Updated `README.md` - Added automation documentation
-4. Updated `README_pt.md` - Portuguese automation docs
-5. Updated `.gitignore` - Optional reports exclusion
-6. Updated roadmap - Marked automation items complete
+1. Created `send_report_telegram.py` - Telegram bot delivery
+2. Removed `send_report_email.py` - Replaced by Telegram
+3. Updated `.github/workflows/daily-report.yml` - Uses Telegram
+4. Updated all docs to reflect Telegram integration
 
 ## Security & API Key Safety (CRITICAL)
 
@@ -308,11 +296,11 @@ load_dotenv()  # Only for local development, never for production/Actions
 
 ## Contact / Reference
 
-- **Target Email:** fabio.pettian@gmail.com
+- **Telegram Delivery:** via @BotFather bot
 - **Based on:** langchain-ai/deepagents
 - **Inspired by:** Claude Code, Anthropic Deep Research, Manus
 
 ---
 
 *Last Updated: 2026-02-12*
-*Current Status: Phase 3 Completed (Z.AI Support Added & Verified)*
+*Current Status: Phase 4 Completed (Telegram Bot Integration)*
