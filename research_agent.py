@@ -1,4 +1,6 @@
 import os
+import sys
+import traceback
 from pathlib import Path
 from typing import Literal
 
@@ -11,6 +13,24 @@ from tavily import TavilyClient
 
 # Reuse the Tavily client across tool invocations
 tavily_client = TavilyClient(api_key=os.environ["TAVILY_API_KEY"])
+
+
+def _send_failure_alert(error_msg: str) -> None:
+    """Send a Telegram alert when the agent fails."""
+    import httpx
+    bot_token = os.environ.get("TELEGRAM_BOT_TOKEN")
+    chat_id = os.environ.get("TELEGRAM_CHAT_ID")
+    if not bot_token or not chat_id:
+        return
+    text = f"❌ *Remote AI Scout failed*\n\n```\n{error_msg[:3000]}\n```"
+    try:
+        httpx.post(
+            f"https://api.telegram.org/bot{bot_token}/sendMessage",
+            json={"chat_id": chat_id, "text": text, "parse_mode": "Markdown"},
+            timeout=15,
+        )
+    except Exception:
+        pass  # Don't raise — we're already in an error path
 
 
 def internet_search(
@@ -126,16 +146,22 @@ agent = create_deep_agent(
 )
 
 if __name__ == "__main__":
-    result = agent.invoke(
-        {"messages": [{"role": "user", "content": "Find remote AI Engineer roles hiring now."}]}
-    )
-    print(result)
+    try:
+        result = agent.invoke(
+            {"messages": [{"role": "user", "content": "Find remote AI Engineer roles hiring now."}]}
+        )
+        print(result)
 
-    files = result.get("files", {})
-    final_data = files.get("/final_report.md")
-    if final_data:
-        Path("final_report.md").write_text("\n".join(final_data["content"]), encoding="utf-8")
-    question_data = files.get("/question.txt")
-    if question_data:
-        Path("question.txt").write_text("\n".join(question_data["content"]), encoding="utf-8")
+        files = result.get("files", {})
+        final_data = files.get("/final_report.md")
+        if final_data:
+            Path("final_report.md").write_text("\n".join(final_data["content"]), encoding="utf-8")
+        question_data = files.get("/question.txt")
+        if question_data:
+            Path("question.txt").write_text("\n".join(question_data["content"]), encoding="utf-8")
+    except Exception:
+        error_msg = traceback.format_exc()
+        print(error_msg, file=sys.stderr)
+        _send_failure_alert(error_msg)
+        sys.exit(1)
 
