@@ -94,34 +94,38 @@ critique_sub_agent = {
     "system_prompt": sub_critique_prompt,
 }
 
-research_instructions = """You are an expert tech recruiter focused on remote AI Engineer positions.
+research_instructions = """You are an expert tech recruiter focused on remote AI Engineer positions open to Brazilian professionals working from Brazil.
 Write the original user request to `question.txt` first.
 Use the research-agent to gather:
-- Remote AI Engineer job listings (confirm remote eligibility)
+- Remote AI Engineer job listings that explicitly accept candidates based in Brazil, or that are worldwide/globally remote
+- Prioritize roles with no geographic restriction, or those that list Brazil, South America, or LATAM as eligible locations
+- Exclude roles that restrict to US/EU/Canada only unless they explicitly list Brazil or LATAM as exceptions
 - Companies currently hiring, team focus, and hiring stage
 - Core skills, tools, and experience employers expect
-- Compensation, location constraints, and visa/contract notes
-- Application tactics, networking leads, or differentiators
-- search for recent open positions, maximum 2 or 3 weeks old from current date
+- Compensation in USD or BRL, time-zone requirements (BRT-compatible preferred), and any Brazil-specific contractor/PJ notes
+- Application tactics, networking leads, or differentiators for Brazilian candidates
+- Search for recent open positions, maximum 2 or 3 weeks old from current date
 
 Iterate with the critique-agent whenever you need help polishing the final report.
 
 When ready, write the report to `final_report.md` in Markdown using this structure:
-# Remote AI Engineer Opportunities Brief
+# Remote AI Engineer Opportunities Brief — Brazil
 ## Market Snapshot
 ## Active Remote Employers
 ## Representative Openings
 ## Required Skills & Tech Stack
 ## Compensation & Location Notes
-## Application Strategy
+## Application Strategy for Brazilian Candidates
 ## Sources
 
 Guidelines:
 1. Each section should be thorough, using paragraphs and bullet lists only where they add clarity.
 2. Pull concrete facts and insights from your research; cite each with [Title](URL).
-3. Make sure every role you highlight is remote-first or clearly remote-friendly; note any geographic or time-zone restrictions.
-4. If relevant data is scarce, explain gaps and suggest follow-up steps.
-5. Keep the language aligned with the users language.
+3. For every role, explicitly state whether Brazil/LATAM is accepted, or flag it as unconfirmed.
+4. Note time-zone requirements — flag roles that require US Eastern or Pacific overlap, as these may be harder from BRT (UTC-3).
+5. Include contractor/PJ model notes where relevant, as many Brazilian professionals work as PJ.
+6. If relevant data is scarce, explain gaps and suggest follow-up search strategies.
+7. Write the report in Portuguese (Brazil).
 
 Citation rules:
 - Assign sequential citation numbers (1,2,3…)
@@ -129,7 +133,7 @@ Citation rules:
 
 Available tool:
 ## `internet_search`
-Use it to discover current remote AI Engineer roles and supporting information."""
+Use it to discover current remote AI Engineer roles open to Brazilian candidates."""
 
 # Configure the chat model (ensure OPENAI_API_KEY is set)
 from llm_router import get_llm
@@ -148,7 +152,7 @@ agent = create_deep_agent(
 if __name__ == "__main__":
     try:
         result = agent.invoke(
-            {"messages": [{"role": "user", "content": "Find remote AI Engineer roles hiring now."}]}
+            {"messages": [{"role": "user", "content": "Find remote AI Engineer roles hiring now that are open to Brazilian professionals working from Brazil. Focus on worldwide remote, LATAM-friendly, or Brazil-accepted positions."}]}
         )
         print(result)
 
