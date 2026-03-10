@@ -225,6 +225,9 @@ Thumbs.db
 # Daily reports (uncomment if you don't want to commit reports to git)
 # reports/
 
+# Private project planning
+ROADMAP.md
+
 # API Keys and Secrets (safety first!)
 # These patterns ensure no API keys accidentally get committed
 *.pem
