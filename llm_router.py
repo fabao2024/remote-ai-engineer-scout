@@ -58,6 +58,7 @@ def get_llm(model_str: str | None = None) -> BaseChatModel:
             model=model_name, # e.g. "gpt-4o-mini"
             api_key=api_key,
             temperature=0,
+            max_retries=6,  # Retry up to 6 times on rate limit / transient errors
         )
 
     else:
