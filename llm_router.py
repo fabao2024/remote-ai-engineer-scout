@@ -3,10 +3,11 @@ from typing import Literal
 
 from langchain_community.chat_models import ChatZhipuAI
 from langchain_openai import ChatOpenAI
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.language_models.chat_models import BaseChatModel
 
 # Supported providers
-Provider = Literal["openai", "zhipu"]
+Provider = Literal["openai", "zhipu", "gemini", "google"]
 
 def get_llm(model_str: str | None = None) -> BaseChatModel:
     """
@@ -14,21 +15,23 @@ def get_llm(model_str: str | None = None) -> BaseChatModel:
 
     Format: "provider:model_name"
     Examples:
-        - "openai:gpt-4o-mini" (Default)
+        - "gemini:gemini-4-argon" (Default)
+        - "openai:gpt-4o-mini"
         - "zhipu:glm-4"
         - "zhipu:glm-4-plus" or "zhipu:glm-4-0520"
+        - "gemini:gemini-2.5-flash"
 
     Env Vars:
         User can set `LLM_MODEL` to override default.
         Resulting provider requires its API key:
+        - GEMINI_API_KEY or GOOGLE_API_KEY
         - OPENAI_API_KEY
         - ZHIPUAI_API_KEY
     """
     # 1. Determine model string
     if not model_str:
-        model_str = os.environ.get("LLM_MODEL", "openai:gpt-4o-mini")
+        model_str = os.environ.get("LLM_MODEL", "gemini:gemini-4-argon")
 
-    # 2. Parse provider and model name
     # 2. Parse provider and model name
     if ":" in model_str:
         provider, model_name = model_str.split(":", 1)
@@ -59,6 +62,17 @@ def get_llm(model_str: str | None = None) -> BaseChatModel:
             api_key=api_key,
             temperature=0,
             max_retries=6,  # Retry up to 6 times on rate limit / transient errors
+        )
+
+    elif provider in ("gemini", "google"):
+        api_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
+        if not api_key:
+            raise ValueError("GEMINI_API_KEY or GOOGLE_API_KEY environment variable is not set.")
+
+        return ChatGoogleGenerativeAI(
+            model=model_name,
+            api_key=api_key,
+            temperature=0,
         )
 
     else:

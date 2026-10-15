@@ -4,8 +4,16 @@ import traceback
 from pathlib import Path
 from typing import Literal
 
+# Ensure UTF-8 console output on Windows to avoid charmap encoding errors
+if sys.platform == "win32":
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 from dotenv import load_dotenv
-load_dotenv()
+load_dotenv(override=True)
 
 from deepagents import create_deep_agent
 from langchain.chat_models import init_chat_model
@@ -80,6 +88,7 @@ Do not write to the `final_report.md` yourself.
 
 Things to check:
 - Check that each section is appropriately named
+- Check that the report includes `## Tabela Resumo Executiva` right after the main title, with a markdown table sorted in ascending order by 'Dias Aberto' (from most recent/lowest days open to oldest).
 - Check that the report is written as you would find in an essay or a textbook - it should be text heavy, do not let it just be a list of bullet points!
 - Check that the report is comprehensive. If any paragraphs or sections are short, or missing important details, point it out.
 - Check that the article covers key areas of the industry, ensures overall understanding, and does not omit important parts.
@@ -110,6 +119,7 @@ Iterate with the critique-agent whenever you need help polishing the final repor
 
 When ready, write the report to `final_report.md` in Markdown using this structure:
 # Remote AI Engineer Opportunities Brief — Brazil
+## Tabela Resumo Executiva
 ## Market Snapshot
 ## Active Remote Employers
 ## Representative Openings
@@ -119,13 +129,16 @@ When ready, write the report to `final_report.md` in Markdown using this structu
 ## Sources
 
 Guidelines:
-1. Each section should be thorough, using paragraphs and bullet lists only where they add clarity.
-2. Pull concrete facts and insights from your research; cite each with [Title](URL).
-3. For every role, explicitly state whether Brazil/LATAM is accepted, or flag it as unconfirmed.
-4. Note time-zone requirements — flag roles that require US Eastern or Pacific overlap, as these may be harder from BRT (UTC-3).
-5. Include contractor/PJ model notes where relevant, as many Brazilian professionals work as PJ.
-6. If relevant data is scarce, explain gaps and suggest follow-up search strategies.
-7. Write the report in Portuguese (Brazil).
+1. Always start the report with `## Tabela Resumo Executiva` featuring a clean Markdown summary table.
+   Columns required: | Dias Aberto | Cargo | Empresa | Local / Elegibilidade | Remuneração Estimada | Link / Aplicação |
+   CRITICAL: Sort the rows in strict ASCENDING order by 'Dias Aberto' (from the fewest days open / most recent to oldest).
+2. Each subsequent section should be thorough, using paragraphs and bullet lists only where they add clarity.
+3. Pull concrete facts and insights from your research; cite each with [Title](URL).
+4. For every role, explicitly state whether Brazil/LATAM is accepted, or flag it as unconfirmed.
+5. Note time-zone requirements — flag roles that require US Eastern or Pacific overlap, as these may be harder from BRT (UTC-3).
+6. Include contractor/PJ model notes where relevant, as many Brazilian professionals work as PJ.
+7. If relevant data is scarce, explain gaps and suggest follow-up search strategies.
+8. Write the report in Portuguese (Brazil).
 
 Citation rules:
 - Assign sequential citation numbers (1,2,3…)
@@ -138,8 +151,8 @@ Use it to discover current remote AI Engineer roles open to Brazilian candidates
 # Configure the chat model (ensure OPENAI_API_KEY is set)
 from llm_router import get_llm
 
-# Configure the chat model (ensure OPENAI_API_KEY or ZHIPUAI_API_KEY is set)
-model = get_llm(os.environ.get("LLM_MODEL", "openai:gpt-4o-mini"))
+# Configure the chat model
+model = get_llm()
 
 # Build the agent with the research and critique subagents
 agent = create_deep_agent(
@@ -151,18 +164,37 @@ agent = create_deep_agent(
 
 if __name__ == "__main__":
     try:
+        print("Starting research agent...")
         result = agent.invoke(
             {"messages": [{"role": "user", "content": "Find remote AI Engineer roles hiring now that are open to Brazilian professionals working from Brazil. Focus on worldwide remote, LATAM-friendly, or Brazil-accepted positions."}]}
         )
-        print(result)
 
         files = result.get("files", {})
         final_data = files.get("/final_report.md")
         if final_data:
-            Path("final_report.md").write_text("\n".join(final_data["content"]), encoding="utf-8")
+            report_text = "\n".join(final_data["content"]) if isinstance(final_data["content"], list) else str(final_data["content"])
+            Path("final_report.md").write_text(report_text, encoding="utf-8")
+            print("Successfully written final_report.md")
+        else:
+            print("Warning: /final_report.md not found in agent output files.")
+
         question_data = files.get("/question.txt")
         if question_data:
-            Path("question.txt").write_text("\n".join(question_data["content"]), encoding="utf-8")
+            q_text = "\n".join(question_data["content"]) if isinstance(question_data["content"], list) else str(question_data["content"])
+            Path("question.txt").write_text(q_text, encoding="utf-8")
+            print("Successfully written question.txt")
+
+        print("Agent execution completed successfully!")
+
+        # Automatically send report to Telegram if credentials are set (skip if running in GitHub Actions to avoid duplicate)
+        if not os.environ.get("GITHUB_ACTIONS"):
+            if os.environ.get("TELEGRAM_BOT_TOKEN") and os.environ.get("TELEGRAM_CHAT_ID"):
+                print("Sending final report to Telegram...")
+                try:
+                    from send_report_telegram import send_report_telegram
+                    send_report_telegram("final_report.md")
+                except Exception as e:
+                    print(f"Warning: Failed to send Telegram report: {e}", file=sys.stderr)
     except Exception:
         error_msg = traceback.format_exc()
         print(error_msg, file=sys.stderr)
