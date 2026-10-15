@@ -12,56 +12,67 @@
 
 ## Overview
 
-This repository hosts a “deep” agent built with **DeepAgents + LangChain**, using the `openai:gpt-4o-mini` model, specialized subagents, and **Tavily** for live web search. Each run gathers remote AI Engineer openings, cross-checks requirements (skills, seniority, stack, compensation bands, geo constraints), and emits a Markdown brief ready to share.
+This repository hosts an autonomous “deep” agent built with **DeepAgents + LangChain**, powered by **Google Gemini (`gemini:gemini-4-argon`)** by default via an extensible LLM router, specialized subagents, and **Tavily** for live web search. Each run gathers remote AI Engineer openings, verifies geographical eligibility for Brazil/LATAM, cross-checks requirements (skills, seniority, stack, compensation bands, contractor/PJ models), and emits an executive brief formatted in Markdown.
 
 Highlights:
-- Supervisor agent orchestrates **research** and **critique** subagents for higher-quality outputs.
-- Custom filesystem middleware stores both the generated report (`final_report.md`) and the base prompt (`question.txt`).
-- Optional LangSmith tracing (`LANGCHAIN_TRACING_V2=true`) keeps an auditable history of queries, tool calls, and cost.
+- **Multi-LLM Routing**: Switch between Google Gemini (`gemini:gemini-4-argon`), OpenAI (`gpt-4o-mini`), and ZhipuAI (`glm-4`) via the `LLM_MODEL` environment variable.
+- **Executive Summary Table**: Every report features an executive quick-view table sorted in ascending order by days open (newest roles first).
+- **Supervisor & Critique Subagents**: Orchestrates **research** and **critique** subagents to guarantee comprehensive, essay-grade analysis.
+- **Automated Telegram Delivery**: Sends report previews and `.md` attachments directly to your Telegram chat, with failure alert dispatching.
+- **Scheduled Cloud Execution**: Runs Mon/Wed/Fri at 8:00 AM BRT via GitHub Actions without requiring your computer to stay on.
 
 ## High-Level Architecture
 
 ```
-User → research_agent.py
-               ├─ create_deep_agent(...)
-               │     ├─ Subagent “research-agent” (uses Tavily)
-               │     └─ Subagent “critique-agent”
-               ├─ Tools: internet_search, filesystem middleware
-               └─ Outputs: final_report.md + question.txt
+User / GitHub Actions → research_agent.py
+                              ├─ llm_router.py (Gemini 4 Argon, OpenAI, ZhipuAI)
+                              ├─ create_deep_agent(...)
+                              │     ├─ Subagent “research-agent” (uses Tavily)
+                              │     └─ Subagent “critique-agent”
+                              ├─ Tools: internet_search, filesystem middleware
+                              ├─ Outputs: final_report.md + question.txt
+                              └─ Delivery: send_report_telegram.py (Message + .md Attachment)
 ```
 
 ## Prerequisites
 
 - Python 3.10+
-- Dependencies listed in `requirements.txt`
-- Environment variables:
-  - `OPENAI_API_KEY`
-  - `TAVILY_API_KEY`
-  - `LANGCHAIN_API_KEY`, `LANGCHAIN_TRACING_V2=true`, `LANGCHAIN_PROJECT` (optional, required only for LangSmith tracing)
+- Dependencies listed in `pyproject.toml` / `requirements.txt`
+- Environment variables configured in `.env` (copy from `.env.example`):
+  - `GEMINI_API_KEY` (Required for default model `gemini:gemini-4-argon`)
+  - `TAVILY_API_KEY` (Required for web search)
+  - `TELEGRAM_BOT_TOKEN` & `TELEGRAM_CHAT_ID` (Required for Telegram alerts and report delivery)
+  - `OPENAI_API_KEY` (Optional, required only if using OpenAI models)
+  - `ZHIPUAI_API_KEY` (Optional, required only if using ZhipuAI models)
+  - `LANGCHAIN_API_KEY`, `LANGCHAIN_TRACING_V2=true`, `LANGCHAIN_PROJECT` (Optional, for LangSmith tracing)
 
-### PowerShell setup
+### Environment Variables Setup
 
-| Variable             | Required | Example           | Purpose                                |
-|----------------------|----------|-------------------|----------------------------------------|
-| OPENAI_API_KEY       | Yes      | `sk-...`          | Chat model (`openai:gpt-4o-mini`)      |
-| TAVILY_API_KEY       | Yes      | `tvly-...`        | Web search tool                        |
-| LANGCHAIN_API_KEY    | No       | `ls-...`          | LangSmith API key                      |
-| LANGCHAIN_TRACING_V2 | No       | `true`            | Enables tracing                        |
-| LANGCHAIN_PROJECT    | No       | `remote-ai-scout` | Project bucket inside LangSmith        |
+Copy the example file to initialize your `.env`:
 
-Persist values for future shells:
-
-```powershell
-setx OPENAI_API_KEY "sk-..."
-setx TAVILY_API_KEY "tvly-..."
-setx LANGCHAIN_API_KEY "ls-..."
-setx LANGCHAIN_TRACING_V2 "true"
-setx LANGCHAIN_PROJECT "remote-ai-scout"
+```bash
+cp .env.example .env
 ```
 
-Or scope them to the current session with `$env:OPENAI_API_KEY = "..."`.
+| Variable | Required | Example | Purpose |
+|---|---|---|---|
+| `LLM_MODEL` | No | `gemini:gemini-4-argon` | Target model provider & name |
+| `GEMINI_API_KEY` | Yes (for default) | `AQ...` | Google AI Studio API key |
+| `TAVILY_API_KEY` | Yes | `tvly-...` | Web search tool |
+| `TELEGRAM_BOT_TOKEN` | Yes | `123456:ABC...` | Telegram bot token from @BotFather |
+| `TELEGRAM_CHAT_ID` | Yes | `809564944` | Telegram chat ID for delivery |
+| `OPENAI_API_KEY` | Optional | `sk-...` | OpenAI API key (if using GPT models) |
+| `ZHIPUAI_API_KEY` | Optional | `435...` | ZhipuAI key (if using GLM models) |
 
 ## Installation
+
+Using `uv` (recommended):
+
+```bash
+uv sync --frozen
+```
+
+Or using standard `venv` + `pip`:
 
 ```bash
 python -m venv .venv
@@ -77,27 +88,27 @@ python research_agent.py
 ```
 
 Execution flow:
-1. Read `question.txt` (defaults to “Find remote AI Engineer roles hiring now aligned with my profile.”).
-2. Launch the deep agent, which spawns the research and critique subagents and calls Tavily for fresh postings.
-3. Overwrite `final_report.md` with the newest report (adjust the script to append timestamped files if you want history).
+1. Reads `question.txt` (or uses standard query targeting remote AI roles for Brazilian/LATAM professionals).
+2. Spawns the deep agent using Gemini 4 Argon, querying Tavily for fresh postings.
+3. Subagent critique validates depth, structure, and executive summary table sorting.
+4. Writes `final_report.md` and automatically sends the report to your Telegram chat.
 
 ## Repository Layout
 
 ```
 .
-├─ research_agent.py            # Agent wiring + subagent definitions
-├─ send_report_email.py         # Email sender utility
+├─ research_agent.py            # Main agent orchestration + subagent definitions
+├─ llm_router.py                # Multi-provider LLM router (Gemini, OpenAI, ZhipuAI)
+├─ send_report_telegram.py      # Telegram bot delivery utility
 ├─ question.txt                 # Prompt used for each run
 ├─ final_report.md              # Latest generated report
-├─ reports/                     # Timestamped daily reports (auto-created)
-├─ libs/
-│  ├─ deepagents-cli/...        # Memory middleware tweaks
-│  └─ deepagents/...            # Custom filesystem + subagent middleware
+├─ reports/                     # Timestamped historical reports
+├─ .env.example                 # Template for environment variables
 ├─ .github/workflows/
-│  └─ daily-report.yml          # GitHub Actions automation
-├─ requirements.txt
-├─ README.md                    # English
-└─ README_pt.md                 # Portuguese
+│  └─ daily-report.yml          # GitHub Actions automation pipeline
+├─ pyproject.toml / uv.lock     # Project dependencies
+├─ README.md                    # English documentation
+└─ README_pt.md                 # Portuguese documentation
 ```
 
 ## Customization
@@ -192,17 +203,18 @@ Network via LinkedIn, monitor curated remote boards, tailor resumes per posting,
 5. LinkedIn – Remote AI jobs
 ```
 
-## Automation & Daily Reports
+## Automation & Telegram Delivery
 
-> ⚠️ **SECURITY WARNING**: This is a **public repository**. Never commit API keys to your code!
-> All API keys must be stored in [GitHub Secrets](https://docs.github.com/en/actions/security-guides/using-secrets-in-github-actions). See [Security section](#security--api-key-safety) below.
+> ⚠️ **SECURITY WARNING**: This is a **public repository**. Never commit API keys or `.env` files to your code!
+> All API keys for GitHub Actions must be stored in [GitHub Secrets](https://docs.github.com/en/actions/security-guides/using-secrets-in-github-actions).
 
 The repository includes a GitHub Actions workflow (`.github/workflows/daily-report.yml`) that automatically:
 
-1. **Runs daily at 8:00 AM UTC** (configurable)
-2. **Executes the research agent** to gather fresh job listings
-3. **Saves timestamped reports** to the `reports/` directory
-4. **Emails the report** to your inbox
+1. **Runs on Mon, Wed, Fri at 8:00 AM BRT (11:00 AM UTC)**
+2. **Executes the research agent** with Gemini 4 Argon to gather verified remote openings
+3. **Validates report depth & structure** with the critique subagent
+4. **Saves timestamped reports** into the `reports/` directory
+5. **Dispatches the briefing directly to your Telegram chat** (formatted text preview + full `.md` attachment)
 
 ### Setup Instructions
 
@@ -211,42 +223,37 @@ The repository includes a GitHub Actions workflow (`.github/workflows/daily-repo
 Configure these secrets in your repository settings (`Settings > Secrets and variables > Actions`):
 
 | Secret | Required | Description |
-|--------|----------|-------------|
-| `OPENAI_API_KEY` | Yes | Your OpenAI API key |
-| `TAVILY_API_KEY` | Yes | Your Tavily API key for web search |
-| `EMAIL_TO` | Yes | Recipient email (default: `fabio.pettian@gmail.com`) |
-| `EMAIL_FROM` | Yes | Sender email address |
-| `EMAIL_PASSWORD` | Yes | App password for sender email |
-| `SMTP_SERVER` | No | SMTP server (default: `smtp.gmail.com`) |
-| `SMTP_PORT` | No | SMTP port (default: `587`) |
-| `LANGCHAIN_API_KEY` | No | For LangSmith tracing |
-| `LANGCHAIN_TRACING_V2` | No | Set to `true` to enable tracing |
-| `LANGCHAIN_PROJECT` | No | LangSmith project name |
+|---|---|---|
+| `GEMINI_API_KEY` | Yes (for default) | Google AI Studio API key |
+| `TAVILY_API_KEY` | Yes | Tavily web search API key |
+| `TELEGRAM_BOT_TOKEN` | Yes | Telegram bot token from [@BotFather](https://t.me/BotFather) |
+| `TELEGRAM_CHAT_ID` | Yes | Your personal or group Telegram Chat ID |
+| `LLM_MODEL` | Optional | Model identifier (defaults to `gemini:gemini-4-argon`) |
+| `OPENAI_API_KEY` | Optional | Required if using OpenAI models |
+| `ZHIPUAI_API_KEY` | Optional | Required if using ZhipuAI models |
+| `LANGCHAIN_API_KEY` | Optional | For LangSmith tracing |
+| `LANGCHAIN_TRACING_V2` | Optional | Set to `true` to enable tracing |
+| `LANGCHAIN_PROJECT` | Optional | LangSmith project name |
 
-#### 2. Gmail App Password Setup
+#### 2. Telegram Bot Configuration
 
-If using Gmail as your sender:
+1. Open Telegram and message [@BotFather](https://t.me/BotFather) to create a bot (`/newbot`).
+2. Copy the HTTP API token generated and save it as `TELEGRAM_BOT_TOKEN`.
+3. Obtain your Chat ID by messaging [@userinfobot](https://t.me/userinfobot) or via `https://api.telegram.org/bot<TOKEN>/getUpdates`.
+4. Save your numeric Chat ID as `TELEGRAM_CHAT_ID`.
 
-1. Enable 2-Factor Authentication on your Google account
-2. Generate an **App Password** at [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords)
-3. Use this app password as `EMAIL_PASSWORD` (not your regular password)
-
-#### 3. Manual Trigger
+#### 3. Manual Workflow Dispatch
 
 You can manually trigger the workflow anytime:
 - Go to **Actions > Daily AI Engineer Scout Report** in your GitHub repository
 - Click **Run workflow**
 
-### Email Report Format
+### Telegram Report Format
 
-The email includes:
-- **HTML version** with formatted report content
-- **Plain text version** for compatibility
-- **Markdown attachment** for easy saving/sharing
-
-**Note on storing reports:** By default, reports are committed to the repository. If you prefer not to store reports in git:
-1. Uncomment the `# reports/` line in `.gitignore`
-2. Modify the workflow to remove the "Commit report to repository" step
+The Telegram delivery includes:
+- **Executive Summary Table** showing the most recent positions sorted by days open.
+- **Formatted text overview** highlighting compensation, remote criteria, and required tech stacks.
+- **Markdown file attachment (`final_report.md`)** containing the complete multi-page deep analysis.
 
 ## Security & API Key Safety
 

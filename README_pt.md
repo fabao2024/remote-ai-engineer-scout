@@ -12,56 +12,67 @@
 
 ## Visão Geral
 
-Este repositório traz um agente “deep” feito com **DeepAgents + LangChain**, usando o modelo `openai:gpt-4o-mini`, subagentes especializados e **Tavily** para buscas ao vivo. Cada execução coleta vagas remotas de Engenharia de IA, cruza requisitos (skills, senioridade, stack, salários, restrições geográficas) e gera um relatório em Markdown pronto para divulgar.
+Este repositório traz um agente autônomo “deep” desenvolvido com **DeepAgents + LangChain**, utilizando por padrão o modelo **Google Gemini (`gemini:gemini-4-argon`)** através de um roteador extensível de LLMs, subagentes especializados e a API do **Tavily** para buscas na web em tempo real. Cada execução mapeia vagas remotas de Engenharia de IA, valida critérios de elegibilidade para o Brasil/LATAM, cruza requisitos técnicos, salários em dólar, regimes tributários (PJ) e fusos horários, gerando um dossiê executivo em Markdown.
 
 Principais destaques:
-- O agente supervisor coordena subagentes de **pesquisa** e **crítica** para garantir qualidade.
-- Middleware de filesystem armazena o relatório (`final_report.md`) e o prompt base (`question.txt`).
-- Tracing opcional via LangSmith (`LANGCHAIN_TRACING_V2=true`) cria histórico auditável de consultas, ferramentas e custo.
+- **Roteador Multi-LLM**: Alterne facilmente entre Google Gemini (`gemini:gemini-4-argon`), OpenAI (`gpt-4o-mini`) e ZhipuAI (`glm-4`) via variável de ambiente `LLM_MODEL`.
+- **Tabela Resumo Executiva**: Cada relatório inicia com um painel rápido contendo as vagas mais recentes ordenadas de forma crescente por dias em aberto.
+- **Coordenação Multi-Agente**: O supervisor coordena subagentes de **pesquisa** e **crítica** para garantir profundidade técnica e qualidade editorial.
+- **Notificação Automática via Telegram**: Envia o resumo e o arquivo `.md` completo diretamente para seu chat do Telegram com alertas de falha.
+- **Execução Agendada na Nuvem**: Roda automaticamente segundas, quartas e sextas às 08:00 BRT pelo GitHub Actions sem precisar manter o PC ligado.
 
 ## Arquitetura em Alto Nível
 
 ```
-Usuário → research_agent.py
-                 ├─ create_deep_agent(...)
-                 │     ├─ Subagente “research-agent” (usa Tavily)
-                 │     └─ Subagente “critique-agent”
-                 ├─ Ferramentas: internet_search, filesystem middleware
-                 └─ Saídas: final_report.md + question.txt
+Usuário / GitHub Actions → research_agent.py
+                                 ├─ llm_router.py (Gemini 4 Argon, OpenAI, ZhipuAI)
+                                 ├─ create_deep_agent(...)
+                                 │     ├─ Subagente “research-agent” (usa Tavily)
+                                 │     └─ Subagente “critique-agent”
+                                 ├─ Ferramentas: internet_search, filesystem middleware
+                                 ├─ Saídas: final_report.md + question.txt
+                                 └─ Entrega: send_report_telegram.py (Mensagem + Anexo .md)
 ```
 
 ## Pré-requisitos
 
 - Python 3.10+
-- Dependências listadas em `requirements.txt`
-- Variáveis de ambiente:
-  - `OPENAI_API_KEY`
-  - `TAVILY_API_KEY`
-  - `LANGCHAIN_API_KEY`, `LANGCHAIN_TRACING_V2=true`, `LANGCHAIN_PROJECT` (opcionais, apenas para LangSmith)
+- Dependências listadas em `pyproject.toml` / `requirements.txt`
+- Variáveis de ambiente configuradas no arquivo `.env` (duplique a partir de `.env.example`):
+  - `GEMINI_API_KEY` (Obrigatória para o modelo padrão `gemini:gemini-4-argon`)
+  - `TAVILY_API_KEY` (Obrigatória para busca web)
+  - `TELEGRAM_BOT_TOKEN` e `TELEGRAM_CHAT_ID` (Obrigatórias para entrega e alertas no Telegram)
+  - `OPENAI_API_KEY` (Opcional, apenas se for usar modelos da OpenAI)
+  - `ZHIPUAI_API_KEY` (Opcional, apenas se for usar modelos da ZhipuAI)
+  - `LANGCHAIN_API_KEY`, `LANGCHAIN_TRACING_V2=true`, `LANGCHAIN_PROJECT` (Opcionais, para tracing no LangSmith)
 
-### Configuração no PowerShell
+### Configuração do Arquivo de Ambiente
 
-| Variável             | Obrigatória | Exemplo            | Uso                                    |
-|----------------------|-------------|--------------------|----------------------------------------|
-| OPENAI_API_KEY       | Sim         | `sk-...`           | Modelo `openai:gpt-4o-mini`            |
-| TAVILY_API_KEY       | Sim         | `tvly-...`         | Ferramenta de busca                    |
-| LANGCHAIN_API_KEY    | Não         | `ls-...`           | Chave do LangSmith                     |
-| LANGCHAIN_TRACING_V2 | Não         | `true`             | Habilita tracing                       |
-| LANGCHAIN_PROJECT    | Não         | `remote-ai-scout`  | Projeto dentro do LangSmith            |
+Copie o arquivo de exemplo para iniciar o seu `.env`:
 
-Persistindo para novas sessões:
-
-```powershell
-setx OPENAI_API_KEY "sk-..."
-setx TAVILY_API_KEY "tvly-..."
-setx LANGCHAIN_API_KEY "ls-..."
-setx LANGCHAIN_TRACING_V2 "true"
-setx LANGCHAIN_PROJECT "remote-ai-scout"
+```bash
+cp .env.example .env
 ```
 
-Para uso apenas na sessão atual, utilize `$env:OPENAI_API_KEY = "..."`.
+| Variável | Obrigatória | Exemplo | Uso |
+|---|---|---|---|
+| `LLM_MODEL` | Não | `gemini:gemini-4-argon` | Provedor e modelo alvo |
+| `GEMINI_API_KEY` | Sim (p/ padrão) | `AQ...` | Chave da Google AI Studio |
+| `TAVILY_API_KEY` | Sim | `tvly-...` | Ferramenta de busca Tavily |
+| `TELEGRAM_BOT_TOKEN` | Sim | `123456:ABC...` | Token do bot via @BotFather |
+| `TELEGRAM_CHAT_ID` | Sim | `809564944` | ID numérico do seu chat/canal |
+| `OPENAI_API_KEY` | Opcional | `sk-...` | Chave da OpenAI (se usar GPT) |
+| `ZHIPUAI_API_KEY` | Opcional | `435...` | Chave ZhipuAI (se usar GLM) |
 
 ## Instalação
+
+Utilizando `uv` (recomendado):
+
+```bash
+uv sync --frozen
+```
+
+Ou utilizando `venv` + `pip` padrão:
 
 ```bash
 python -m venv .venv
@@ -76,28 +87,28 @@ pip install -r requirements.txt
 python research_agent.py
 ```
 
-Fluxo:
-1. Lê `question.txt` (padrão: “Find remote AI Engineer roles hiring now aligned with my profile.”).
-2. Dispara o agente profundo, que convoca os subagentes de pesquisa/crítica e usa Tavily para obter vagas atualizadas.
-3. Sobrescreve `final_report.md` com o briefing mais recente (adapte o script para salvar `final_report_<YYYYMMDD>.md` caso queira histórico).
+Fluxo de execução:
+1. Lê `question.txt` (ou o prompt padrão voltado a profissionais do Brasil).
+2. Dispara o agente profundo com Gemini 4 Argon, consultando a web em tempo real via Tavily.
+3. O subagente de crítica audita a completude do relatório e a ordem crescente da tabela resumo.
+4. Grava `final_report.md` e envia automaticamente a notificação e o anexo para o seu Telegram.
 
 ## Estrutura do Repositório
 
 ```
 .
-├─ research_agent.py            # Configuração principal do agente
-├─ send_report_email.py         # Utilitário de envio de email
-├─ question.txt                 # Prompt base
+├─ research_agent.py            # Orquestração do agente principal e subagentes
+├─ llm_router.py                # Roteador multi-provedor (Gemini, OpenAI, ZhipuAI)
+├─ send_report_telegram.py      # Módulo de envio de relatórios via Telegram Bot
+├─ question.txt                 # Prompt base utilizado na pesquisa
 ├─ final_report.md              # Último relatório gerado
-├─ reports/                     # Relatórios diários com timestamp (auto-criado)
-├─ libs/
-│  ├─ deepagents-cli/...        # Ajustes do middleware de memória
-│  └─ deepagents/...            # Filesystem + subagents customizados
+├─ reports/                     # Histórico versionado de relatórios diários
+├─ .env.example                 # Modelo base para variáveis de ambiente
 ├─ .github/workflows/
-│  └─ daily-report.yml          # Automação do GitHub Actions
-├─ requirements.txt
-├─ README.md                    # Em inglês
-└─ README_pt.md                 # Em português
+│  └─ daily-report.yml          # Pipeline de automação do GitHub Actions
+├─ pyproject.toml / uv.lock     # Gerenciamento de dependências
+├─ README.md                    # Documentação em inglês
+└─ README_pt.md                 # Documentação em português
 ```
 
 ## Personalização
@@ -183,17 +194,18 @@ Faça networking no LinkedIn, monitore job boards remotos, personalize o CV por 
 5. LinkedIn – Remote AI jobs
 ```
 
-## Automação e Relatórios Diários
+## Automação e Entrega via Telegram
 
-> ⚠️ **AVISO DE SEGURANÇA**: Este é um repositório **público**. Nunca commite chaves de API no seu código!
-> Todas as chaves devem ser armazenadas em [GitHub Secrets](https://docs.github.com/pt/actions/security-guides/using-secrets-in-github-actions). Veja a [seção de Segurança](#segurança-e-proteção-de-chaves) abaixo.
+> ⚠️ **AVISO DE SEGURANÇA**: Este é um repositório **público**. Nunca commite chaves de API nem o seu arquivo `.env` no código!
+> Todas as chaves devem ser armazenadas em [GitHub Secrets](https://docs.github.com/pt/actions/security-guides/using-secrets-in-github-actions).
 
 O repositório inclui um workflow do GitHub Actions (`.github/workflows/daily-report.yml`) que automaticamente:
 
-1. **Executa diariamente às 8:00 UTC** (configurável)
-2. **Roda o agente de pesquisa** para coletar vagas atualizadas
-3. **Salva relatórios com timestamp** no diretório `reports/`
-4. **Envia o relatório por email** para sua caixa de entrada
+1. **Executa às segundas, quartas e sextas às 08:00 BRT (11:00 UTC)**
+2. **Roda o agente de pesquisa** com o Gemini 4 Argon para mapear vagas verificadas
+3. **Valida o relatório** através do subagente de crítica
+4. **Salva relatórios com timestamp** no diretório `reports/`
+5. **Envia a notificação diretamente para o seu Telegram** (resumo em texto + anexo `.md` completo)
 
 ### Instruções de Configuração
 
@@ -202,25 +214,24 @@ O repositório inclui um workflow do GitHub Actions (`.github/workflows/daily-re
 Configure estes secrets nas configurações do repositório (`Settings > Secrets and variables > Actions`):
 
 | Secret | Obrigatório | Descrição |
-|--------|-------------|-----------|
-| `OPENAI_API_KEY` | Sim | Sua chave API da OpenAI |
+|---|---|---|
+| `GEMINI_API_KEY` | Sim (p/ padrão) | Chave da Google AI Studio |
 | `TAVILY_API_KEY` | Sim | Chave API do Tavily para busca web |
-| `EMAIL_TO` | Sim | Email do destinatário (padrão: `fabio.pettian@gmail.com`) |
-| `EMAIL_FROM` | Sim | Email do remetente |
-| `EMAIL_PASSWORD` | Sim | Senha de app do email remetente |
-| `SMTP_SERVER` | Não | Servidor SMTP (padrão: `smtp.gmail.com`) |
-| `SMTP_PORT` | Não | Porta SMTP (padrão: `587`) |
-| `LANGCHAIN_API_KEY` | Não | Para rastreamento LangSmith |
-| `LANGCHAIN_TRACING_V2` | Não | Defina como `true` para ativar rastreamento |
-| `LANGCHAIN_PROJECT` | Não | Nome do projeto no LangSmith |
+| `TELEGRAM_BOT_TOKEN` | Sim | Token do bot via [@BotFather](https://t.me/BotFather) |
+| `TELEGRAM_CHAT_ID` | Sim | ID do chat ou canal para recebimento |
+| `LLM_MODEL` | Opcional | Identificador do modelo (padrão: `gemini:gemini-4-argon`) |
+| `OPENAI_API_KEY` | Opcional | Necessário se for rodar modelos da OpenAI |
+| `ZHIPUAI_API_KEY` | Opcional | Necessário se for rodar modelos da ZhipuAI |
+| `LANGCHAIN_API_KEY` | Opcional | Para rastreamento LangSmith |
+| `LANGCHAIN_TRACING_V2` | Opcional | Defina como `true` para ativar rastreamento |
+| `LANGCHAIN_PROJECT` | Opcional | Nome do projeto no LangSmith |
 
-#### 2. Configuração de Senha de App do Gmail
+#### 2. Configuração do Bot do Telegram
 
-Se usar Gmail como remetente:
-
-1. Ative a Autenticação de 2 Fatores na sua conta Google
-2. Gere uma **Senha de App** em [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords)
-3. Use esta senha de app como `EMAIL_PASSWORD` (não sua senha regular)
+1. Abra o Telegram e inicie uma conversa com [@BotFather](https://t.me/BotFather) para criar seu bot (`/newbot`).
+2. Copie o token HTTP gerado e cadastre como `TELEGRAM_BOT_TOKEN`.
+3. Obtenha seu Chat ID enviando uma mensagem para [@userinfobot](https://t.me/userinfobot) ou acessando `https://api.telegram.org/bot<TOKEN>/getUpdates`.
+4. Cadastre o número retornado como `TELEGRAM_CHAT_ID`.
 
 #### 3. Execução Manual
 
@@ -228,16 +239,12 @@ Você pode executar o workflow manualmente a qualquer momento:
 - Vá para **Actions > Daily AI Engineer Scout Report** no seu repositório GitHub
 - Clique em **Run workflow**
 
-### Formato do Email
+### Formato de Entrega no Telegram
 
-O email inclui:
-- **Versão HTML** com conteúdo formatado do relatório
-- **Versão texto** para compatibilidade
-- **Anexo Markdown** para fácil salvamento/compartilhamento
-
-**Nota sobre armazenamento de relatórios:** Por padrão, os relatórios são commitados no repositório. Se preferir não armazenar relatórios no git:
-1. Descomente a linha `# reports/` no `.gitignore`
-2. Modifique o workflow para remover o step "Commit report to repository"
+O envio para o Telegram contém:
+- **Tabela Resumo Executiva** listando as oportunidades mais recentes ordenadas por idade do post.
+- **Resumo formatado em texto** com destaques de mercado, faixas salariais e stack técnica.
+- **Arquivo anexo em Markdown (`final_report.md`)** com o dossiê completo e todas as fontes citadas.
 
 ## Segurança e Proteção de Chaves
 
