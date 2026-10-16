@@ -1,6 +1,6 @@
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue)
 ![LangChain](https://img.shields.io/badge/LangChain-DeepAgents-4B8BBE)
-![CI](https://github.com/<SEU_USER>/<SEU_REPO>/actions/workflows/ci.yml/badge.svg)
+![CI](https://github.com/fabao2024/remote-ai-engineer-scout/actions/workflows/ci.yml/badge.svg)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 # 🧠🤖Remote AI Engineer Scout
@@ -12,10 +12,10 @@
 
 ## Overview
 
-This repository hosts an autonomous “deep” agent built with **DeepAgents + LangChain**, powered by **Google Gemini (`gemini:gemini-4-argon`)** by default via an extensible LLM router, specialized subagents, and **Tavily** for live web search. Each run gathers remote AI Engineer openings, verifies geographical eligibility for Brazil/LATAM, cross-checks requirements (skills, seniority, stack, compensation bands, contractor/PJ models), and emits an executive brief formatted in Markdown.
+This repository hosts an autonomous “deep” agent built with **DeepAgents + LangChain**, powered by **Google Gemini (`gemini:gemini-2.5-flash`)** by default via an extensible LLM router, specialized subagents, and **Tavily** for live web search. Each run gathers remote AI Engineer openings, verifies geographical eligibility for Brazil/LATAM, cross-checks requirements (skills, seniority, stack, compensation bands, contractor/PJ models), and emits an executive brief formatted in Markdown.
 
 Highlights:
-- **Multi-LLM Routing**: Switch between Google Gemini (`gemini:gemini-4-argon`), OpenAI (`gpt-4o-mini`), and ZhipuAI (`glm-4`) via the `LLM_MODEL` environment variable.
+- **Multi-LLM Routing**: Switch between Google Gemini (`gemini:gemini-2.5-flash`), OpenAI (`gpt-4o-mini`), and ZhipuAI (`glm-4`) via the `LLM_MODEL` environment variable.
 - **Executive Summary Table**: Every report features an executive quick-view table sorted in ascending order by days open (newest roles first).
 - **Supervisor & Critique Subagents**: Orchestrates **research** and **critique** subagents to guarantee comprehensive, essay-grade analysis.
 - **Persistent Memory & Deduplication**: Tracks previously seen positions in `seen_jobs.json` to prioritize fresh opportunities and prevent duplicate postings across runs.
@@ -27,7 +27,7 @@ Highlights:
 
 ```
 User / GitHub Actions → research_agent.py
-                              ├─ llm_router.py (Gemini 4 Argon, OpenAI, ZhipuAI)
+                              ├─ llm_router.py (Gemini 2.5 Flash with OpenAI/ZhipuAI fallbacks)
                               ├─ create_deep_agent(...)
                               │     ├─ Subagent “research-agent” (uses Tavily)
                               │     └─ Subagent “critique-agent”
@@ -41,7 +41,7 @@ User / GitHub Actions → research_agent.py
 - Python 3.10+
 - Dependencies listed in `pyproject.toml` / `requirements.txt`
 - Environment variables configured in `.env` (copy from `.env.example`):
-  - `GEMINI_API_KEY` (Required for default model `gemini:gemini-4-argon`)
+  - `GEMINI_API_KEY` (Required for default model `gemini:gemini-2.5-flash`)
   - `TAVILY_API_KEY` (Required for web search)
   - `TELEGRAM_BOT_TOKEN` & `TELEGRAM_CHAT_ID` (Required for Telegram alerts and report delivery)
   - `OPENAI_API_KEY` (Optional, required only if using OpenAI models)
@@ -58,8 +58,9 @@ cp .env.example .env
 
 | Variable | Required | Example | Purpose |
 |---|---|---|---|
-| `TARGET_ROLE` | No | `AI Engineer` | Target job position to search for (default: `AI Engineer`) |
-| `LLM_MODEL` | No | `gemini:gemini-4-argon` | Target model provider & name |
+| `TARGET_ROLE` | No | `Applied AI Engineer` | Target job position to search for (default: `Applied AI Engineer`) |
+| `LLM_MODEL` | No | `gemini:gemini-2.5-flash` | Target model provider & name |
+| `LLM_FALLBACK_MODELS` | No | `openai:gpt-4o-mini,zhipu:glm-4-flash` | Comma-separated fallback chain |
 | `GEMINI_API_KEY` | Yes (for default) | `AQ...` | Google AI Studio API key |
 | `TAVILY_API_KEY` | Yes | `tvly-...` | Web search tool |
 | `TELEGRAM_BOT_TOKEN` | Yes | `123456:ABC...` | Telegram bot token from @BotFather |
@@ -92,7 +93,7 @@ python research_agent.py
 
 Execution flow:
 1. Reads `question.txt` (or uses standard query targeting remote AI roles for Brazilian/LATAM professionals).
-2. Spawns the deep agent using Gemini 4 Argon, querying Tavily for fresh postings.
+2. Spawns the deep agent using Gemini 2.5 Flash, querying Tavily for fresh postings.
 3. Subagent critique validates depth, structure, and executive summary table sorting.
 4. Writes `final_report.md` and automatically sends the report to your Telegram chat.
 
@@ -247,7 +248,7 @@ Network via LinkedIn, monitor curated remote boards, tailor resumes per posting,
 The repository includes a GitHub Actions workflow (`.github/workflows/daily-report.yml`) that automatically:
 
 1. **Runs on Mon, Wed, Fri at 8:00 AM BRT (11:00 AM UTC)**
-2. **Executes the research agent** with Gemini 4 Argon to gather verified remote openings
+2. **Executes the research agent** with Gemini 2.5 Flash to gather verified remote openings
 3. **Validates report depth & structure** with the critique subagent
 4. **Saves timestamped reports** into the `reports/` directory
 5. **Dispatches the briefing directly to your Telegram chat** (formatted text preview + full `.md` attachment)
@@ -264,7 +265,8 @@ Configure these secrets in your repository settings (`Settings > Secrets and var
 | `TAVILY_API_KEY` | Yes | Tavily web search API key |
 | `TELEGRAM_BOT_TOKEN` | Yes | Telegram bot token from [@BotFather](https://t.me/BotFather) |
 | `TELEGRAM_CHAT_ID` | Yes | Your personal or group Telegram Chat ID |
-| `LLM_MODEL` | Optional | Model identifier (defaults to `gemini:gemini-4-argon`) |
+| `LLM_MODEL` | Optional | Model identifier (defaults to `gemini:gemini-2.5-flash`) |
+| `LLM_FALLBACK_MODELS` | Optional | Comma-separated fallback providers |
 | `OPENAI_API_KEY` | Optional | Required if using OpenAI models |
 | `ZHIPUAI_API_KEY` | Optional | Required if using ZhipuAI models |
 | `LANGCHAIN_API_KEY` | Optional | For LangSmith tracing |

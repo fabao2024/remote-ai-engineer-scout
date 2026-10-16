@@ -7,10 +7,7 @@ from urllib.parse import urlparse, urlunparse, parse_qsl, urlencode
 
 DEFAULT_SEEN_FILE = "seen_jobs.json"
 
-TRACKING_PARAMS = {
-    "utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content",
-    "ref", "source", "gh_src", "lever-source", "s", "trk"
-}
+TRACKING_PARAMS = {"utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content", "ref", "source", "gh_src", "lever-source", "s", "trk"}
 
 
 def normalize_url(url: str) -> str:
@@ -21,14 +18,16 @@ def normalize_url(url: str) -> str:
         query_pairs = parse_qsl(parsed.query, keep_blank_values=False)
         clean_query = [(k, v) for k, v in query_pairs if k.lower() not in TRACKING_PARAMS]
         clean_path = parsed.path.rstrip("/")
-        normalized = urlunparse((
-            parsed.scheme.lower(),
-            parsed.netloc.lower(),
-            clean_path,
-            parsed.params,
-            urlencode(clean_query),
-            "",  # Remove fragment
-        ))
+        normalized = urlunparse(
+            (
+                parsed.scheme.lower(),
+                parsed.netloc.lower(),
+                clean_path,
+                parsed.params,
+                urlencode(clean_query),
+                "",  # Remove fragment
+            )
+        )
         return normalized
     except Exception:
         return url.strip().rstrip("/")
@@ -49,10 +48,7 @@ def load_seen_jobs(filepath: str = DEFAULT_SEEN_FILE) -> dict:
 def save_seen_jobs(seen_jobs: dict, filepath: str = DEFAULT_SEEN_FILE) -> None:
     """Save seen jobs to JSON file with sorted keys and clean indentation."""
     path = Path(filepath)
-    path.write_text(
-        json.dumps(seen_jobs, indent=2, ensure_ascii=False, sort_keys=True) + "\n",
-        encoding="utf-8"
-    )
+    path.write_text(json.dumps(seen_jobs, indent=2, ensure_ascii=False, sort_keys=True) + "\n", encoding="utf-8")
 
 
 def extract_jobs_from_markdown(content: str, default_date: str | None = None) -> list[dict]:
@@ -63,63 +59,53 @@ def extract_jobs_from_markdown(content: str, default_date: str | None = None) ->
     jobs = []
     seen_urls_in_report = set()
 
-    # 1. Parse Executive Table rows:
-    # | Dias Aberto | Cargo | Empresa | Local / Elegibilidade | Remuneração Estimada | Link / Aplicação |
-    table_pattern = re.compile(
-        r'\|\s*([^|]+?)\s*\|\s*([^|]+?)\s*\|\s*([^|]+?)\s*\|\s*([^|]+?)\s*\|\s*([^|]+?)\s*\|\s*([^|]+?)\s*\|'
-    )
-    for match in table_pattern.finditer(content):
-        days_open = match.group(1).strip()
-        role = match.group(2).strip().replace("**", "")
-        company = match.group(3).strip().replace("**", "")
-        location = match.group(4).strip()
-        comp = match.group(5).strip()
-        link_col = match.group(6).strip()
+    # Only the executive table is a machine-readable source of candidates.
+    # Narrative sections contain citations, market examples, and research links.
+    table_marker = "## Tabela Resumo Executiva"
+    marker_index = content.find(table_marker)
+    if marker_index < 0:
+        return jobs
 
-        # Skip headers / separators
-        if "Dias Aberto" in days_open or "---" in days_open:
+    table_section = content[marker_index + len(table_marker) :]
+    next_header = re.search(r"^##\s+", table_section, flags=re.MULTILINE)
+    if next_header:
+        table_section = table_section[: next_header.start()]
+
+    for line in table_section.splitlines():
+        if "|" not in line:
+            continue
+        cells = [cell.strip() for cell in line.strip().strip("|").split("|")]
+        if len(cells) < 6:
             continue
 
-        # Extract markdown link: [Text](URL)
-        link_match = re.search(r'\[([^\]]+)\]\((https?://[^\)]+)\)', link_col)
-        if link_match:
-            raw_url = link_match.group(2).strip()
-            norm_url = normalize_url(raw_url)
-            if norm_url not in seen_urls_in_report:
-                seen_urls_in_report.add(norm_url)
-                jobs.append({
-                    "url": norm_url,
-                    "raw_url": raw_url,
-                    "role": role,
-                    "company": company,
-                    "location": location,
-                    "compensation": comp,
-                    "date": default_date
-                })
+        days_open, role, company, location, comp, link_col = cells[:6]
+        if "Dias Aberto" in days_open or re.fullmatch(r":?-{3,}:?", days_open):
+            continue
 
-    # 2. Also extract any other ATS / career links not captured in table
-    # Matches common job boards and ATS domains
-    ats_domains = (
-        "greenhouse.io", "ashbyhq.com", "lever.co", "workable.com", "bamboohr.com",
-        "smartrecruiters.com", "weworkremotely.com", "remotive.com", "workingnomads.com",
-        "gupy.io", "pandape.infojobs.com.br", "quickin.io"
-    )
-    link_pattern = re.compile(r'\[([^\]]+)\]\((https?://[^\)]+)\)')
-    for match in link_pattern.finditer(content):
-        label = match.group(1).strip()
-        raw_url = match.group(2).strip()
+        link_match = re.search(r"\[([^\]]+)\]\((https?://[^\)]+)\)", link_col)
+        role = role.replace("**", "").strip()
+        company = company.replace("**", "").strip()
+        if not link_match or not role or not company:
+            continue
+
+        raw_url = link_match.group(2).strip()
         norm_url = normalize_url(raw_url)
-        if any(dom in norm_url for dom in ats_domains) and norm_url not in seen_urls_in_report:
-            seen_urls_in_report.add(norm_url)
-            jobs.append({
+        if norm_url in seen_urls_in_report:
+            continue
+
+        seen_urls_in_report.add(norm_url)
+        jobs.append(
+            {
                 "url": norm_url,
                 "raw_url": raw_url,
-                "role": label,
-                "company": "",
-                "location": "",
-                "compensation": "",
-                "date": default_date
-            })
+                "role": role,
+                "company": company,
+                "location": location,
+                "compensation": comp,
+                "date": default_date,
+                "days_open": days_open,
+            }
+        )
 
     return jobs
 
@@ -169,11 +155,7 @@ def get_exclusion_prompt(seen_file: str = DEFAULT_SEEN_FILE, max_urls: int = 50)
         return ""
 
     # Sort by last_seen descending
-    sorted_jobs = sorted(
-        seen_jobs.items(),
-        key=lambda item: item[1].get("last_seen", ""),
-        reverse=True
-    )[:max_urls]
+    sorted_jobs = sorted(seen_jobs.items(), key=lambda item: item[1].get("last_seen", ""), reverse=True)[:max_urls]
 
     lines = [
         "## Previously Reported Positions (Prioritize NEW Opportunities)",
@@ -198,7 +180,7 @@ def populate_from_history(reports_dir: str = "reports", seen_file: str = DEFAULT
     report_files = sorted(rep_dir.glob("report_*.md"))
     for rpath in report_files:
         # Extract date from filename if possible: report_YYYYMMDD_HHMMSS.md
-        match = re.search(r'report_(\d{4})(\d{2})(\d{2})_', rpath.name)
+        match = re.search(r"report_(\d{4})(\d{2})(\d{2})_", rpath.name)
         if match:
             date_str = f"{match.group(1)}-{match.group(2)}-{match.group(3)}"
         else:
@@ -215,7 +197,7 @@ def populate_from_history(reports_dir: str = "reports", seen_file: str = DEFAULT
                         "company": j.get("company", ""),
                         "first_seen": date_str,
                         "last_seen": date_str,
-                        "appearances": 1
+                        "appearances": 1,
                     }
                 else:
                     if date_str < seen_jobs[url]["first_seen"]:

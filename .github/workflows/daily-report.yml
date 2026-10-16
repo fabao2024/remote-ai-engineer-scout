@@ -17,6 +17,11 @@ permissions:
 
 env:
   UV_FROZEN: "true"
+  LLM_MAX_RETRIES: "1"
+
+concurrency:
+  group: daily-report
+  cancel-in-progress: false
 
 jobs:
   generate-and-send-report:
@@ -42,11 +47,41 @@ jobs:
       - name: Create reports directory
         run: mkdir -p reports
 
+      - name: Validate LLM provider configuration
+        env:
+          LLM_MODEL: ${{ secrets.LLM_MODEL || 'gemini:gemini-2.5-flash' }}
+          LLM_FALLBACK_MODELS: ${{ secrets.LLM_FALLBACK_MODELS || 'openai:gpt-4o-mini,zhipu:glm-4-flash' }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          ZHIPUAI_API_KEY: ${{ secrets.ZHIPUAI_API_KEY }}
+        run: |
+          python - <<'PY'
+          import os
+
+          names = [os.environ.get("LLM_MODEL", "")]
+          names.extend(os.environ.get("LLM_FALLBACK_MODELS", "").split(","))
+          available = []
+          for name in names:
+              raw_name = name.strip()
+              provider = raw_name.split(":", 1)[0].strip().lower() if ":" in raw_name else "openai"
+              if provider in {"gemini", "google"} and (os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")):
+                  available.append(provider)
+              elif provider == "openai" and os.environ.get("OPENAI_API_KEY"):
+                  available.append(provider)
+              elif provider == "zhipu" and os.environ.get("ZHIPUAI_API_KEY"):
+                  available.append(provider)
+
+          if not available:
+              raise SystemExit("No configured LLM provider credential is available for the primary/fallback chain")
+          print("LLM provider preflight passed for: " + ", ".join(dict.fromkeys(available)))
+          PY
+
       - name: Run research agent
         env:
           TARGET_ROLE: ${{ inputs.target_role || vars.TARGET_ROLE || secrets.TARGET_ROLE || 'Applied AI Engineer' }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          LLM_MODEL: ${{ secrets.LLM_MODEL }}
+          LLM_MODEL: ${{ secrets.LLM_MODEL || 'gemini:gemini-2.5-flash' }}
+          LLM_FALLBACK_MODELS: ${{ secrets.LLM_FALLBACK_MODELS || 'openai:gpt-4o-mini,zhipu:glm-4-flash' }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           ZHIPUAI_API_KEY: ${{ secrets.ZHIPUAI_API_KEY }}
           TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
@@ -71,8 +106,13 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add reports/${{ steps.timestamp.outputs.filename }} seen_jobs.json
-          git diff --staged --quiet || git commit -m "Add daily report ${{ steps.timestamp.outputs.date }} and update seen jobs"
-          git push
+          if git diff --staged --quiet; then
+            echo "No generated changes to commit"
+            exit 0
+          fi
+          git commit -m "Add daily report ${{ steps.timestamp.outputs.date }} and update seen jobs"
+          git pull --rebase origin main
+          git push origin HEAD:main
 
       - name: Send report via Telegram
         env:

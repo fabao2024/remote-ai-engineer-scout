@@ -34,10 +34,15 @@ ELIGIBLE_PATTERNS = [
     re.compile(r"\bamérica latina\b", re.IGNORECASE),
     re.compile(r"\bsouth america\b", re.IGNORECASE),
     re.compile(r"\bworldwide\b", re.IGNORECASE),
-    re.compile(r"\banywhere\b", re.IGNORECASE),
-    re.compile(r"\bglobal(?:ly)?\b", re.IGNORECASE),
+    re.compile(r"\banywhere in the world\b", re.IGNORECASE),
+    re.compile(r"\bglobal(?:ly)? remote\b", re.IGNORECASE),
     re.compile(r"\bamericas\b", re.IGNORECASE),
+]
+
+REMOTE_PATTERNS = [
     re.compile(r"\bremote\b", re.IGNORECASE),
+    re.compile(r"\bdistributed team\b", re.IGNORECASE),
+    re.compile(r"\bwork from home\b", re.IGNORECASE),
 ]
 
 STRICT_EXCLUSION_PATTERNS = [
@@ -47,10 +52,7 @@ STRICT_EXCLUSION_PATTERNS = [
     re.compile(r"us citizenship required", re.IGNORECASE),
 ]
 
-USER_AGENT = (
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-    "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-)
+USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
 
 
 class HTMLTextExtractor(HTMLParser):
@@ -100,13 +102,16 @@ async def check_job_url(client: httpx.AsyncClient, url: str) -> dict[str, Any]:
                 "reason": f"HTTP {resp.status_code} (Job Page Not Found)",
             }
 
-        # 403 / 429 often means Cloudflare / anti-bot challenge on job boards (still valid for human applicants)
+        # Anti-bot responses do not prove that the vacancy is active or eligible.
+        # Keep them visible for manual review, but never publish them as verified.
         if resp.status_code in (403, 429):
             return {
                 "url": url,
-                "is_valid": True,
+                "is_valid": False,
+                "eligibility_verified": False,
+                "needs_manual_review": True,
                 "status_code": resp.status_code,
-                "reason": f"HTTP {resp.status_code} (Anti-bot protected, accessible to human browser)",
+                "reason": f"HTTP {resp.status_code} (anti-bot response; eligibility not verified)",
             }
 
         if resp.status_code >= 500:
@@ -131,21 +136,42 @@ async def check_job_url(client: httpx.AsyncClient, url: str) -> dict[str, Any]:
 
         # Check for strict exclusion (e.g. US Only without Brazil/LATAM exception)
         has_exclusion = any(p.search(text) for p in STRICT_EXCLUSION_PATTERNS)
-        has_brazil_mention = bool(re.search(r"\bbrazil\b|\bbrasil\b|\blatam\b", text, re.IGNORECASE))
+        has_eligible_region = any(p.search(text) for p in ELIGIBLE_PATTERNS)
+        has_remote_signal = any(p.search(text) for p in REMOTE_PATTERNS)
 
-        if has_exclusion and not has_brazil_mention:
+        if has_exclusion and not has_eligible_region:
             return {
                 "url": url,
                 "is_valid": False,
+                "eligibility_verified": False,
                 "status_code": resp.status_code,
-                "reason": "Strict US-only exclusion without Brazil/LATAM exception",
+                "reason": "Strict geographic exclusion without Brazil/LATAM/global exception",
+            }
+
+        if not has_remote_signal:
+            return {
+                "url": url,
+                "is_valid": False,
+                "eligibility_verified": False,
+                "status_code": resp.status_code,
+                "reason": "Remote work eligibility not verified on the official page",
+            }
+
+        if not has_eligible_region:
+            return {
+                "url": url,
+                "is_valid": False,
+                "eligibility_verified": False,
+                "status_code": resp.status_code,
+                "reason": "Brazil/LATAM/global eligibility not verified on the official page",
             }
 
         return {
             "url": url,
             "is_valid": True,
+            "eligibility_verified": True,
             "status_code": resp.status_code,
-            "reason": "Active & Verified",
+            "reason": "Active, remote, and Brazil/LATAM/global eligibility verified",
         }
     except Exception as e:
         return {
@@ -191,7 +217,7 @@ def sanitize_report(report_path: str = "final_report.md") -> dict[str, Any]:
     table_header_index = -1
     table_rows: list[tuple[int, str, str]] = []  # (line_index, line_str, url)
 
-    link_re = re.compile(r'\[([^\]]+)\]\((https?://[^\)]+)\)')
+    link_re = re.compile(r"\[([^\]]+)\]\((https?://[^\)]+)\)")
 
     for idx, line in enumerate(lines):
         if "## Tabela Resumo Executiva" in line:
@@ -232,26 +258,20 @@ def sanitize_report(report_path: str = "final_report.md") -> dict[str, Any]:
         res = validation_results.get(url, {"is_valid": True})
         if not res["is_valid"]:
             removed_indices.add(line_idx)
-            removed_details.append({
-                "url": url,
-                "reason": res["reason"],
-                "row": row_str
-            })
+            removed_details.append({"url": url, "reason": res["reason"], "row": row_str})
             print(f"  ❌ Removed invalid/closed role: {url} -> Reason: {res['reason']}")
         else:
             print(f"  ✅ Verified active role: {url}")
 
     if removed_indices:
         # Reconstruct sanitized content
-        sanitized_lines = [
-            line for idx, line in enumerate(lines) if idx not in removed_indices
-        ]
+        sanitized_lines = [line for idx, line in enumerate(lines) if idx not in removed_indices]
 
         # Update table count in introduction if present (e.g. "**28 vagas**" -> "**27 vagas**")
         remaining_count = len(table_rows) - len(removed_indices)
         sanitized_content = "\n".join(sanitized_lines)
 
-        count_pattern = re.compile(r'\*\*(\d+)\s+vagas\b', re.IGNORECASE)
+        count_pattern = re.compile(r"\*\*(\d+)\s+vagas\b", re.IGNORECASE)
         sanitized_content = count_pattern.sub(f"**{remaining_count} vagas", sanitized_content, count=1)
 
         path.write_text(sanitized_content + "\n", encoding="utf-8")

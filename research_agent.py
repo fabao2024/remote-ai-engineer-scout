@@ -16,10 +16,11 @@ if sys.platform == "win32":
 _explicit_role = os.environ.get("TARGET_ROLE")
 
 from dotenv import load_dotenv
+
 load_dotenv(override=True)
 
-# Target role configuration (defaults to "AI Engineer" if not set)
-TARGET_ROLE = (_explicit_role or os.environ.get("TARGET_ROLE") or "AI Engineer").strip()
+# Target role configuration (defaults to "Applied AI Engineer" if not set)
+TARGET_ROLE = (_explicit_role or os.environ.get("TARGET_ROLE") or "Applied AI Engineer").strip()
 
 from deepagents import create_deep_agent
 from langchain.chat_models import init_chat_model
@@ -33,6 +34,7 @@ tavily_client = TavilyClient(api_key=os.environ["TAVILY_API_KEY"])
 def _send_failure_alert(error_msg: str) -> None:
     """Send a Telegram alert when the agent fails."""
     import httpx
+
     bot_token = os.environ.get("TELEGRAM_BOT_TOKEN")
     chat_id = os.environ.get("TELEGRAM_CHAT_ID")
     if not bot_token or not chat_id:
@@ -183,7 +185,14 @@ if __name__ == "__main__":
     try:
         print(f"Starting research agent for role: {TARGET_ROLE}...")
         result = agent.invoke(
-            {"messages": [{"role": "user", "content": f"Find remote {TARGET_ROLE} roles hiring now that are open to Brazilian professionals working from Brazil. Focus on worldwide remote, LATAM-friendly, or Brazil-accepted positions."}]}
+            {
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": f"Find remote {TARGET_ROLE} roles hiring now that are open to Brazilian professionals working from Brazil. Focus on worldwide remote, LATAM-friendly, or Brazil-accepted positions.",
+                    }
+                ]
+            }
         )
 
         files = result.get("files", {})
@@ -193,28 +202,31 @@ if __name__ == "__main__":
             Path("final_report.md").write_text(report_text, encoding="utf-8")
             print("Successfully written final_report.md")
 
-            # Deterministic URL health check and eligibility audit
-            try:
-                from url_validator import sanitize_report
-                print("Auditing and sanitizing job URLs in final report...")
-                audit_result = sanitize_report("final_report.md")
-                rem_count = audit_result.get("removed_count", 0)
-                val_count = audit_result.get("valid_count", 0)
-                if rem_count > 0:
-                    print(f"Audit complete: {rem_count} closed/invalid positions removed ({val_count} remain active).")
-                else:
-                    print(f"Audit complete: All {val_count} positions are 100% active and verified.")
-            except Exception as e:
-                print(f"Warning: URL sanitization failed: {e}", file=sys.stderr)
+            # Deterministic URL health check and eligibility audit.
+            # Validation and registry failures are release blockers: the workflow
+            # must not commit or deliver a report that was not audited.
+            from url_validator import sanitize_report
 
-            # Update persistent memory tracker (seen_jobs.json) with verified active jobs
-            try:
-                new_jobs = update_seen_jobs("final_report.md")
-                print(f"Updated seen_jobs.json: {new_jobs} new positions recorded.")
-            except Exception as e:
-                print(f"Warning: Failed to update seen_jobs.json: {e}", file=sys.stderr)
+            print("Auditing and sanitizing job URLs in final report...")
+            audit_result = sanitize_report("final_report.md")
+            if audit_result.get("error"):
+                raise RuntimeError(f"URL sanitization failed: {audit_result['error']}")
+            if "total_checked" not in audit_result:
+                raise RuntimeError(f"URL sanitization did not validate an executive table: {audit_result}")
+
+            rem_count = audit_result.get("removed_count", 0)
+            val_count = audit_result.get("valid_count", 0)
+            if rem_count > 0:
+                print(f"Audit complete: {rem_count} closed/invalid positions removed ({val_count} remain active).")
+            else:
+                print(f"Audit complete: All {val_count} positions are active and validated.")
+
+            # Update persistent memory tracker (seen_jobs.json). A tracker
+            # failure must stop the run before any commit or delivery.
+            new_jobs = update_seen_jobs("final_report.md")
+            print(f"Updated seen_jobs.json: {new_jobs} new positions recorded.")
         else:
-            print("Warning: /final_report.md not found in agent output files.")
+            raise RuntimeError("Agent output did not contain /final_report.md")
 
         question_data = files.get("/question.txt")
         if question_data:
@@ -230,12 +242,14 @@ if __name__ == "__main__":
                 print("Sending final report to Telegram...")
                 try:
                     from send_report_telegram import send_report_telegram
-                    send_report_telegram("final_report.md")
+
+                    if not send_report_telegram("final_report.md"):
+                        raise RuntimeError("Telegram delivery returned failure")
                 except Exception as e:
-                    print(f"Warning: Failed to send Telegram report: {e}", file=sys.stderr)
+                    print(f"Error: Failed to send Telegram report: {e}", file=sys.stderr)
+                    raise
     except Exception:
         error_msg = traceback.format_exc()
         print(error_msg, file=sys.stderr)
         _send_failure_alert(error_msg)
         sys.exit(1)
-

@@ -1,6 +1,6 @@
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue)
 ![LangChain](https://img.shields.io/badge/LangChain-DeepAgents-4B8BBE)
-![CI](https://github.com/<SEU_USER>/<SEU_REPO>/actions/workflows/ci.yml/badge.svg)
+![CI](https://github.com/fabao2024/remote-ai-engineer-scout/actions/workflows/ci.yml/badge.svg)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 # Remote AI Engineer Scout
@@ -12,10 +12,10 @@
 
 ## Visão Geral
 
-Este repositório traz um agente autônomo “deep” desenvolvido com **DeepAgents + LangChain**, utilizando por padrão o modelo **Google Gemini (`gemini:gemini-4-argon`)** através de um roteador extensível de LLMs, subagentes especializados e a API do **Tavily** para buscas na web em tempo real. Cada execução mapeia vagas remotas de Engenharia de IA, valida critérios de elegibilidade para o Brasil/LATAM, cruza requisitos técnicos, salários em dólar, regimes tributários (PJ) e fusos horários, gerando um dossiê executivo em Markdown.
+Este repositório traz um agente autônomo “deep” desenvolvido com **DeepAgents + LangChain**, utilizando por padrão o modelo **Google Gemini (`gemini:gemini-2.5-flash`)** através de um roteador extensível de LLMs, subagentes especializados e a API do **Tavily** para buscas na web em tempo real. Cada execução mapeia vagas remotas de Engenharia de IA, valida critérios de elegibilidade para o Brasil/LATAM, cruza requisitos técnicos, salários em dólar, regimes tributários (PJ) e fusos horários, gerando um dossiê executivo em Markdown.
 
 Principais destaques:
-- **Roteador Multi-LLM**: Alterne facilmente entre Google Gemini (`gemini:gemini-4-argon`), OpenAI (`gpt-4o-mini`) e ZhipuAI (`glm-4`) via variável de ambiente `LLM_MODEL`.
+- **Roteador Multi-LLM**: Alterne facilmente entre Google Gemini (`gemini:gemini-2.5-flash`), OpenAI (`gpt-4o-mini`) e ZhipuAI (`glm-4`) via variável de ambiente `LLM_MODEL`.
 - **Tabela Resumo Executiva**: Cada relatório inicia com um painel rápido contendo as vagas mais recentes ordenadas de forma crescente por dias em aberto.
 - **Coordenação Multi-Agente**: O supervisor coordena subagentes de **pesquisa** e **crítica** para garantir profundidade técnica e qualidade editorial.
 - **Memória Persistente e Deduplicação**: Rastreia vagas já reportadas em `seen_jobs.json`, evitando repetições entre execuções e priorizando oportunidades inéditas.
@@ -27,7 +27,7 @@ Principais destaques:
 
 ```
 Usuário / GitHub Actions → research_agent.py
-                                 ├─ llm_router.py (Gemini 4 Argon, OpenAI, ZhipuAI)
+                                 ├─ llm_router.py (Gemini 2.5 Flash com fallbacks OpenAI/ZhipuAI)
                                  ├─ create_deep_agent(...)
                                  │     ├─ Subagente “research-agent” (usa Tavily)
                                  │     └─ Subagente “critique-agent”
@@ -41,7 +41,7 @@ Usuário / GitHub Actions → research_agent.py
 - Python 3.10+
 - Dependências listadas em `pyproject.toml` / `requirements.txt`
 - Variáveis de ambiente configuradas no arquivo `.env` (duplique a partir de `.env.example`):
-  - `GEMINI_API_KEY` (Obrigatória para o modelo padrão `gemini:gemini-4-argon`)
+  - `GEMINI_API_KEY` (Obrigatória para o modelo padrão `gemini:gemini-2.5-flash`)
   - `TAVILY_API_KEY` (Obrigatória para busca web)
   - `TELEGRAM_BOT_TOKEN` e `TELEGRAM_CHAT_ID` (Obrigatórias para entrega e alertas no Telegram)
   - `OPENAI_API_KEY` (Opcional, apenas se for usar modelos da OpenAI)
@@ -58,8 +58,9 @@ cp .env.example .env
 
 | Variável | Obrigatória | Exemplo | Uso |
 |---|---|---|---|
-| `TARGET_ROLE` | Não | `AI Engineer` | Cargo/posição a ser pesquisada (padrão: `AI Engineer`) |
-| `LLM_MODEL` | Não | `gemini:gemini-4-argon` | Provedor e modelo alvo |
+| `TARGET_ROLE` | Não | `Applied AI Engineer` | Cargo/posição a ser pesquisada (padrão: `Applied AI Engineer`) |
+| `LLM_MODEL` | Não | `gemini:gemini-2.5-flash` | Provedor e modelo alvo |
+| `LLM_FALLBACK_MODELS` | Não | `openai:gpt-4o-mini,zhipu:glm-4-flash` | Cadeia de fallback separada por vírgulas |
 | `GEMINI_API_KEY` | Sim (p/ padrão) | `AQ...` | Chave da Google AI Studio |
 | `TAVILY_API_KEY` | Sim | `tvly-...` | Ferramenta de busca Tavily |
 | `TELEGRAM_BOT_TOKEN` | Sim | `123456:ABC...` | Token do bot via @BotFather |
@@ -92,7 +93,7 @@ python research_agent.py
 
 Fluxo de execução:
 1. Lê `question.txt` (ou o prompt padrão voltado a profissionais do Brasil).
-2. Dispara o agente profundo com Gemini 4 Argon, consultando a web em tempo real via Tavily.
+2. Dispara o agente profundo com Gemini 2.5 Flash, consultando a web em tempo real via Tavily.
 3. O subagente de crítica audita a completude do relatório e a ordem crescente da tabela resumo.
 4. Grava `final_report.md` e envia automaticamente a notificação e o anexo para o seu Telegram.
 
@@ -238,7 +239,7 @@ Faça networking no LinkedIn, monitore job boards remotos, personalize o CV por 
 O repositório inclui um workflow do GitHub Actions (`.github/workflows/daily-report.yml`) que automaticamente:
 
 1. **Executa às segundas, quartas e sextas às 08:00 BRT (11:00 UTC)**
-2. **Roda o agente de pesquisa** com o Gemini 4 Argon para mapear vagas verificadas
+2. **Roda o agente de pesquisa** com o Gemini 2.5 Flash para mapear vagas verificadas
 3. **Valida o relatório** através do subagente de crítica
 4. **Salva relatórios com timestamp** no diretório `reports/`
 5. **Envia a notificação diretamente para o seu Telegram** (resumo em texto + anexo `.md` completo)
@@ -255,7 +256,8 @@ Configure estes secrets nas configurações do repositório (`Settings > Secrets
 | `TAVILY_API_KEY` | Sim | Chave API do Tavily para busca web |
 | `TELEGRAM_BOT_TOKEN` | Sim | Token do bot via [@BotFather](https://t.me/BotFather) |
 | `TELEGRAM_CHAT_ID` | Sim | ID do chat ou canal para recebimento |
-| `LLM_MODEL` | Opcional | Identificador do modelo (padrão: `gemini:gemini-4-argon`) |
+| `LLM_MODEL` | Opcional | Identificador do modelo (padrão: `gemini:gemini-2.5-flash`) |
+| `LLM_FALLBACK_MODELS` | Opcional | Provedores de fallback separados por vírgula |
 | `OPENAI_API_KEY` | Opcional | Necessário se for rodar modelos da OpenAI |
 | `ZHIPUAI_API_KEY` | Opcional | Necessário se for rodar modelos da ZhipuAI |
 | `LANGCHAIN_API_KEY` | Opcional | Para rastreamento LangSmith |

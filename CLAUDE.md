@@ -8,10 +8,10 @@
 **Purpose:** Automated daily research agent that finds remote AI Engineer job opportunities using DeepAgents + LangChain + Tavily
 **Core Functionality:**
 - Runs `research_agent.py` to search for remote AI Engineer roles
-- Uses GPT-4o-mini via OpenAI API
+- Uses the configured primary LLM with credential-aware fallbacks
 - Searches live web via Tavily API
 - Generates structured Markdown reports
-- Sends reports daily at 8:00 AM UTC via Telegram bot
+- Sends reports on the Mon/Wed/Fri schedule via Telegram bot
 
 ## Architecture
 
@@ -34,7 +34,7 @@ User/Scheduler → GitHub Actions → research_agent.py
 | `final_report.md` | Latest generated report |
 | `reports/` | Timestamped historical reports |
 | `.github/workflows/daily-report.yml` | GitHub Actions automation |
-| `llm_router.py` | Handles LLM provider switching (OpenAI/ZhipuAI) |
+- `llm_router.py` | Handles LLM provider switching and fallback
 
 ## Implementation History
 
@@ -60,27 +60,30 @@ User/Scheduler → GitHub Actions → research_agent.py
 
 ### For Local Development:
 ```powershell
-$env:OPENAI_API_KEY = "sk-..."
 $env:TAVILY_API_KEY = "tvly-..."
-$env:ZHIPUAI_API_KEY = "your_key..."     # New: Z.AI / ZhipuAI
-$env:LLM_MODEL = "zhipu:glm-4.7"         # Optional: Default is openai:gpt-4o-mini
-$env:LANGCHAIN_API_KEY = "ls-..."      # Optional
-$env:LANGCHAIN_TRACING_V2 = "true"     # Optional
-$env:LANGCHAIN_PROJECT = "remote-ai-scout"  # Optional
+$env:GEMINI_API_KEY = "your_key..."
+$env:OPENAI_API_KEY = "sk-..."             # Optional fallback/provider
+$env:LLM_MODEL = "gemini:gemini-2.5-flash" # Optional
+$env:LLM_FALLBACK_MODELS = "openai:gpt-4o-mini,zhipu:glm-4-flash" # Optional
+$env:LANGCHAIN_API_KEY = "ls-..."          # Optional
+$env:LANGCHAIN_TRACING_V2 = "true"         # Optional
+$env:LANGCHAIN_PROJECT = "remote-ai-scout" # Optional
 ```
 
 ### For GitHub Actions (Repository Secrets):
 | Secret | Required | Description |
 |--------|----------|-------------|
-| `OPENAI_API_KEY` | Yes | OpenAI API key |
-| `TAVILY_API_KEY` | Yes | Tavily search API |
+| `GEMINI_API_KEY` | One configured provider | Gemini API key |
+| `OPENAI_API_KEY` | Optional | Fallback/provider key |
+| `TAVILY_API_KEY` | Yes | Tavily API key for web search |
 | `TELEGRAM_BOT_TOKEN` | Yes | Telegram bot token from @BotFather |
 | `TELEGRAM_CHAT_ID` | Yes | Telegram chat ID for report delivery |
 | `LANGCHAIN_API_KEY` | No | For LangSmith tracing |
 | `LANGCHAIN_TRACING_V2` | No | Set `true` to enable |
 | `LANGCHAIN_PROJECT` | No | LangSmith project name |
-| `ZHIPUAI_API_KEY` | No | For Z.AI/ZhipuAI models |
-| `LLM_MODEL` | No | `openai:gpt-4o-mini` (default) or `zhipu:glm-4.7` |
+| `ZHIPUAI_API_KEY` | No | Fallback/provider key for ZhipuAI |
+| `LLM_MODEL` | No | Primary model, e.g. `gemini:gemini-2.5-flash` |
+| `LLM_FALLBACK_MODELS` | No | Comma-separated fallback chain |
 
 ## Running the Project
 
@@ -102,13 +105,13 @@ python send_report_telegram.py
 1. Push to repository
 2. Go to **Actions > Daily AI Engineer Scout Report**
 3. Click **Run workflow** (manual trigger)
-4. Or wait for daily 8:00 AM UTC schedule
+4. Or wait for the Mon/Wed/Fri schedule at 8:00 AM BRT (11:00 AM UTC)
 
 ## Current Configuration
 
 ### Schedule:
-- **Daily at 8:00 AM UTC** (configurable in `daily-report.yml`)
-- Cron: `'0 8 * * *'`
+- **Monday, Wednesday and Friday at 8:00 AM BRT** (configurable in `daily-report.yml`)
+- Cron: `'0 11 * * 1,3,5'`
 
 ### Telegram Delivery:
 - Markdown formatted message
@@ -131,31 +134,20 @@ python send_report_telegram.py
 
 ### Remaining (Priority Order):
 
-1. **Add Regression Tests for Middleware**
-   - Test custom filesystem middleware
-   - Test subagent spawning
-   - Test Telegram sender
-   - Add to GitHub Actions CI
+1. **Deterministic candidate scoring and scope filters**
+   - Exclude Data Engineering, DevOps, ITSM and generic Full Stack roles
+   - Apply contractor/PJ, rate, workload and timezone hard gates
+   - Add explicit `SEGUIR`, `NEGOCIAR` and `DESCARTAR` classification
 
-2. **Refine Z.AI Integration**
-   - Handle rate limits gracefully (currently relies on user quota)
-   - Add fallback logic (Zhipu -> OpenAI)
+2. **Data persistence improvements**
+   - Migrate the URL-only registry to a structured job fingerprint
+   - Preserve requisition ID, company, role, location, rate and eligibility evidence
+   - Add historical trend analysis
 
-3. **Enhanced Filtering & Customization**
-   - Add filters for specific companies/roles
-   - Region-specific search (LATAM focus)
-   - Salary range filtering
-   - Experience level targeting
-
-4. **Cost Tracking & Budgeting**
+3. **Cost tracking and budgeting**
    - Monthly cost summaries
    - Budget alerts
    - Usage dashboard integration
-
-5. **Data Persistence Improvements**
-   - Database storage for job listings
-   - Deduplication logic
-   - Historical trend analysis
 
 ## Technical Notes
 
