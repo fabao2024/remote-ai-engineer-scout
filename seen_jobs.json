@@ -6,33 +6,26 @@
     "last_seen": "2026-10-16",
     "role": "30"
   },
-  "https://apply.workable.com/inmetrics/j/894CE15950": {
-    "appearances": 1,
-    "company": "Inmetrics",
-    "first_seen": "2026-10-16",
-    "last_seen": "2026-10-16",
-    "role": "Senior Artificial Intelligence Engineer"
-  },
-  "https://apply.workable.com/omilia-natural-language-solutions-ua-ltd/j/B3886596F2": {
-    "appearances": 1,
-    "company": "",
-    "first_seen": "2026-10-16",
-    "last_seen": "2026-10-16",
-    "role": "Omilia — Senior Conversational AI Delivery Engineer Lead"
-  },
-  "https://apply.workable.com/strider-technologies/j/177B5D9E18": {
-    "appearances": 1,
-    "company": "Strider Technologies",
-    "first_seen": "2026-10-16",
-    "last_seen": "2026-10-16",
-    "role": "Founding Principal / Lead Applied AI Engineer"
-  },
   "https://careers.blueorange.digital/jobs/686647-senior-data-llm-engineer-ai-ready-data-agentic-systems": {
-    "appearances": 1,
+    "appearances": 2,
     "company": "Blue Orange Digital",
     "first_seen": "2026-10-16",
     "last_seen": "2026-10-16",
     "role": "Senior Data & LLM Engineer (AI-Ready Data & Agentic Systems)"
+  },
+  "https://careers.blueorange.digital/jobs/709069-senior-agentic-ai-engineer": {
+    "appearances": 1,
+    "company": "Blue Orange Digital",
+    "first_seen": "2026-10-16",
+    "last_seen": "2026-10-16",
+    "role": "Senior Agentic AI Engineer"
+  },
+  "https://indicium.inhire.app/vagas/9820f4a6-94c7-4a4e-ad17-4e67da573084/senior-forward-deployed-ai-engineer-with-focus-on-fsi": {
+    "appearances": 1,
+    "company": "Indicium AI",
+    "first_seen": "2026-10-16",
+    "last_seen": "2026-10-16",
+    "role": "Senior Forward Deployed AI Engineer (FSI)"
   },
   "https://job-boards.eu.greenhouse.io/invisibletech/jobs/4979734101": {
     "appearances": 1,
@@ -69,26 +62,12 @@
     "last_seen": "2026-10-16",
     "role": "Agentic AI Engineer"
   },
-  "https://job-boards.greenhouse.io/distillery/jobs/4659029008": {
-    "appearances": 1,
-    "company": "",
-    "first_seen": "2026-10-16",
-    "last_seen": "2026-10-16",
-    "role": "Distillery — Senior AI Software Engineer"
-  },
   "https://job-boards.greenhouse.io/factored/jobs/4514946008": {
     "appearances": 1,
     "company": "Factored",
     "first_seen": "2026-10-16",
     "last_seen": "2026-10-16",
     "role": "Senior AI Engineer (RAG/LLMs)"
-  },
-  "https://job-boards.greenhouse.io/leantech/jobs/4639412008": {
-    "appearances": 1,
-    "company": "",
-    "first_seen": "2026-10-16",
-    "last_seen": "2026-10-16",
-    "role": "Lean Tech — AI Engineer"
   },
   "https://job-boards.greenhouse.io/nortal/jobs/5261238007": {
     "appearances": 1,
@@ -97,68 +76,19 @@
     "last_seen": "2026-10-16",
     "role": "Senior AI Agentic Engineer"
   },
-  "https://job-boards.greenhouse.io/xebialatam/jobs/6000708004": {
-    "appearances": 1,
-    "company": "",
-    "first_seen": "2026-06-24",
-    "last_seen": "2026-06-24",
-    "role": "Job Application for AI Engineer at LATAM - Greenhouse"
-  },
-  "https://jobs.1840andco.com/jobs/Careers/812420000127988635/Senior-Python---Agentic-AI-Engineer---LATAM": {
-    "appearances": 1,
-    "company": "1840 & Company",
-    "first_seen": "2026-10-16",
-    "last_seen": "2026-10-16",
-    "role": "Senior Python & Agentic AI Engineer — LATAM"
-  },
-  "https://jobs.ashbyhq.com/5C/6a89c3b1-58f0-4a93-9576-409024b0a268": {
-    "appearances": 1,
-    "company": "5C",
-    "first_seen": "2026-10-16",
-    "last_seen": "2026-10-16",
-    "role": "AI Engineer (Autonomous Healthcare Agents)"
-  },
   "https://jobs.ashbyhq.com/blacksmith%20agency/5dfccfc8-a527-44b9-b3ec-eaee25fc3f0f": {
-    "appearances": 1,
+    "appearances": 2,
     "company": "Blacksmith Agency",
     "first_seen": "2026-10-16",
     "last_seen": "2026-10-16",
     "role": "AI Engineer"
   },
-  "https://jobs.ashbyhq.com/blank-metal/4126ffdf-7672-4a2b-9085-5317573c4140": {
+  "https://jobs.ashbyhq.com/futureproofing/2e49af5e-3415-46a9-ad0b-aa1516a99096": {
     "appearances": 1,
-    "company": "Blank Metal",
+    "company": "Futureproofing",
     "first_seen": "2026-10-16",
     "last_seen": "2026-10-16",
-    "role": "Forward Deployed AI Engineer (Brazil Remote)"
-  },
-  "https://jobs.ashbyhq.com/blank-metal/8c295cb8-6d30-4526-8511-265de1925c53": {
-    "appearances": 1,
-    "company": "Blank Metal",
-    "first_seen": "2026-10-16",
-    "last_seen": "2026-10-16",
-    "role": "Senior AI Engineer (Brazil Remote)"
-  },
-  "https://jobs.ashbyhq.com/contra/e5662dc9-2156-4810-a04e-091c82008982": {
-    "appearances": 1,
-    "company": "Contra",
-    "first_seen": "2026-10-16",
-    "last_seen": "2026-10-16",
-    "role": "Staff AI Engineer"
-  },
-  "https://jobs.ashbyhq.com/eightsleep/e9beee6a-7605-404c-a596-7d9de651e840": {
-    "appearances": 1,
-    "company": "Eight Sleep",
-    "first_seen": "2026-10-16",
-    "last_seen": "2026-10-16",
-    "role": "Agentic AI Engineer (Customer Experience)"
-  },
-  "https://jobs.ashbyhq.com/eightsleep/f897e752-91e7-4fa2-a910-8bd77694f3e0": {
-    "appearances": 1,
-    "company": "",
-    "first_seen": "2026-10-16",
-    "last_seen": "2026-10-16",
-    "role": "Data Infrastructure Engineer (Applied AI)"
+    "role": "Fullstack AI Software Engineer - LATAM"
   },
   "https://jobs.ashbyhq.com/mastra/531a3fe8-556f-4b83-bee7-20374f67f980": {
     "appearances": 1,
@@ -174,44 +104,51 @@
     "last_seen": "2026-10-16",
     "role": "Applied AI Engineer"
   },
-  "https://jobs.ashbyhq.com/rulebase/37f15e38-2860-4859-bf85-9fa96fd3b354": {
-    "appearances": 1,
-    "company": "Rulebase",
-    "first_seen": "2026-10-16",
-    "last_seen": "2026-10-16",
-    "role": "Forward Deployed AI Engineer (Customer Success & Expansion)"
-  },
   "https://jobs.ashbyhq.com/trm-labs/83ebea18-ce4b-47a9-bffc-a8432eb8c3a4/application": {
-    "appearances": 1,
+    "appearances": 2,
     "company": "TRM Labs",
     "first_seen": "2026-10-16",
     "last_seen": "2026-10-16",
     "role": "Senior Software Engineer, AI Engineer (Brazil)"
   },
   "https://jobs.ashbyhq.com/truelogic/64a5bc8c-8c80-4932-8d0d-2dd92808808a": {
-    "appearances": 1,
+    "appearances": 2,
     "company": "Truelogic Software",
     "first_seen": "2026-10-16",
     "last_seen": "2026-10-16",
     "role": "Lead Full-Stack AI Engineer (Python/TypeScript)"
   },
   "https://jobs.ashbyhq.com/truelogic/90cc065a-85ff-424d-afad-2784027d930d": {
-    "appearances": 1,
+    "appearances": 2,
     "company": "Truelogic Software",
     "first_seen": "2026-10-16",
     "last_seen": "2026-10-16",
     "role": "Forward Deployed Engineer — AI Solutions"
   },
-  "https://jobs.lever.co/ciandt/33476e73-cc4f-4707-9c0b-c692dc05d466": {
+  "https://jobs.lever.co/TalentusGlobal/9760b72b-c022-4be9-9858-10ea64edef89": {
     "appearances": 1,
+    "company": "Talentus Global",
+    "first_seen": "2026-10-16",
+    "last_seen": "2026-10-16",
+    "role": "Generative AI Engineer (LATAM Candidates Only)"
+  },
+  "https://jobs.lever.co/ciandt/33476e73-cc4f-4707-9c0b-c692dc05d466": {
+    "appearances": 2,
     "company": "CI&T",
     "first_seen": "2026-10-16",
     "last_seen": "2026-10-16",
     "role": "Senior AI Engineer (Financial Sector - Job-32285)"
   },
-  "https://jobs.lever.co/ciandt/b5a7671b-6612-4ed7-ae0a-132c920bc66d": {
+  "https://jobs.lever.co/ciandt/92969fab-e7fb-4d7d-8d87-d8bd6464499c": {
     "appearances": 1,
-    "company": "",
+    "company": "CI&T",
+    "first_seen": "2026-10-16",
+    "last_seen": "2026-10-16",
+    "role": "Senior AI Engineer (Job-00023)"
+  },
+  "https://jobs.lever.co/ciandt/b5a7671b-6612-4ed7-ae0a-132c920bc66d": {
+    "appearances": 2,
+    "company": "CI&T",
     "first_seen": "2026-10-16",
     "last_seen": "2026-10-16",
     "role": "CI&T — Senior AI Engineer (Job-30118)"

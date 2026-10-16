@@ -23,7 +23,12 @@ CLOSED_PATTERNS = [
     re.compile(r"esta vaga não está mais disponível", re.IGNORECASE),
     re.compile(r"o processo seletivo foi encerrado", re.IGNORECASE),
     re.compile(r"job is no longer active", re.IGNORECASE),
+    re.compile(r"job posting is no longer active", re.IGNORECASE),
     re.compile(r"application closed", re.IGNORECASE),
+    re.compile(r"oops! this page doesn't exist", re.IGNORECASE),
+    re.compile(r"page (?:you are looking for )?(?:not found|could not be found|cannot be found)", re.IGNORECASE),
+    re.compile(r"we couldn't find the page", re.IGNORECASE),
+    re.compile(r"the page you were looking for doesn't exist", re.IGNORECASE),
 ]
 
 ELIGIBLE_PATTERNS = [
@@ -91,7 +96,7 @@ def extract_text_from_html(html: str) -> str:
 
 
 async def check_job_url(client: httpx.AsyncClient, url: str) -> dict[str, Any]:
-    """Check health, HTTP status code, and closed status for a single job posting URL."""
+    """Check health, HTTP status code, ATS-specific dead-page signals, and closed status."""
     try:
         resp = await client.get(url)
         if resp.status_code in (404, 410):
@@ -122,7 +127,89 @@ async def check_job_url(client: httpx.AsyncClient, url: str) -> dict[str, Any]:
                 "reason": f"HTTP {resp.status_code} (Server Error)",
             }
 
-        text = extract_text_from_html(resp.text)
+        final_url_str = str(resp.url).lower()
+        original_url_str = url.lower()
+
+        # 1. ATS Redirect Checks
+        # Workable dead job redirect
+        if "apply.workable.com/oops" in final_url_str or "not_found=true" in final_url_str:
+            return {
+                "url": url,
+                "is_valid": False,
+                "status_code": resp.status_code,
+                "reason": "Workable: Job not found (redirected to oops/not_found)",
+            }
+
+        # Greenhouse error redirect
+        if "error=true" in final_url_str:
+            return {
+                "url": url,
+                "is_valid": False,
+                "status_code": resp.status_code,
+                "reason": "Greenhouse: Job not found (redirected to error=true)",
+            }
+
+        # Generic redirect away from job posting to careers root
+        if (
+            any(k in original_url_str for k in ("/j/", "/jobs/", "/postings/", "/positions/"))
+            and not any(k in final_url_str for k in ("/j/", "/jobs/", "/postings/", "/positions/"))
+            and final_url_str != original_url_str
+        ):
+            return {
+                "url": url,
+                "is_valid": False,
+                "status_code": resp.status_code,
+                "reason": "Redirected away from job posting to main/careers page",
+            }
+
+        # 2. HTML Title & Metadata Analysis
+        html = resp.text
+        title_m = re.search(r"<title>(.*?)</title>", html, re.IGNORECASE | re.DOTALL)
+        title = title_m.group(1).strip() if title_m else ""
+        title_lower = title.lower()
+
+        og_title_m = (
+            re.search(r'property="og:title"\s+content="([^"]*)"', html, re.IGNORECASE)
+            or re.search(r'content="([^"]*)"\s+property="og:title"', html, re.IGNORECASE)
+        )
+        og_title = og_title_m.group(1).strip() if og_title_m else ""
+
+        # Ashby specific checks:
+        # Invalid Ashby job URLs return HTTP 200 with an empty client shell:
+        # <title>Jobs</title>, no og:title (or og:title is empty/Jobs), text length < 20k bytes
+        if "ashbyhq.com" in final_url_str:
+            if title_lower in ("jobs", "") or not og_title or og_title.lower() == "jobs":
+                return {
+                    "url": url,
+                    "is_valid": False,
+                    "status_code": resp.status_code,
+                    "reason": "Ashby: Invalid/closed job posting (empty shell, title is 'Jobs')",
+                }
+
+        # Generic dead page titles
+        generic_dead_titles = {
+            "workable",
+            "page not found",
+            "not found",
+            "404",
+            "404 not found",
+            "error",
+            "oops",
+            "jobs",
+            "careers",
+            "job not found",
+            "position closed",
+        }
+        if title_lower in generic_dead_titles and len(html) < 25000:
+            return {
+                "url": url,
+                "is_valid": False,
+                "status_code": resp.status_code,
+                "reason": f"Generic dead page title ('{title}') and missing job details",
+            }
+
+        # 3. Content / Text Analysis
+        text = extract_text_from_html(html)
 
         # Check for closed position phrases
         for pattern in CLOSED_PATTERNS:
@@ -225,8 +312,8 @@ def sanitize_report(report_path: str = "final_report.md") -> dict[str, Any]:
             continue
 
         if in_table:
-            # Table ended if we encounter next header or blank line after rows
-            if line.startswith("## ") or (table_rows and line.strip() == "" and idx > table_rows[-1][0] + 1):
+            # Table ended if we encounter next header or horizontal divider
+            if line.startswith("## ") or line.strip() == "---":
                 in_table = False
                 continue
 

@@ -78,6 +78,7 @@ sub_research_prompt = f"""You specialize in investigating remote {TARGET_ROLE} j
 - Verify that each role explicitly allows remote work; if unclear, flag the uncertainty.
 - Capture useful metadata such as application deadlines, region restrictions, and tech stack requirements.
 - Always return a concise summary plus the raw sources (title + URL) you relied on.
+- CRITICAL: ONLY return real URLs directly provided by `internet_search`. NEVER fabricate, guess, or synthesize job URLs or UUIDs (e.g., jobs.ashbyhq.com/<slug>/<fake-uuid>). If a search snippet mentions a job without a direct ATS link, execute a targeted search (e.g. `site:jobs.lever.co <company> <role>` or `site:jobs.ashbyhq.com <company> <role>`) to obtain the genuine URL.
 Only your FINAL answer is surfaced to the supervisor, so deliver a complete, citation-backed note."""
 
 research_sub_agent = {
@@ -151,13 +152,18 @@ Guidelines:
 1. Always start the report with `## Tabela Resumo Executiva` featuring a clean Markdown summary table.
    Columns required: | Dias Aberto | Cargo | Empresa | Local / Elegibilidade | Remuneração Estimada | Link / Aplicação |
    CRITICAL: Sort the rows in strict ASCENDING order by 'Dias Aberto' (from the fewest days open / most recent to oldest).
-2. Each subsequent section should be thorough, using paragraphs and bullet lists only where they add clarity.
-3. Pull concrete facts and insights from your research; cite each with [Title](URL).
-4. For every role, explicitly state whether Brazil/LATAM is accepted, or flag it as unconfirmed.
-5. Note time-zone requirements — flag roles that require US Eastern or Pacific overlap, as these may be harder from BRT (UTC-3).
-6. Include contractor/PJ model notes where relevant, as many Brazilian professionals work as PJ.
-7. If relevant data is scarce, explain gaps and suggest follow-up search strategies.
-8. Write the report in Portuguese (Brazil).
+2. CRITICAL URL INTEGRITY & ZERO HALLUCINATION:
+   - You MUST ONLY cite URLs that were EXPLICITLY returned by `internet_search`.
+   - NEVER fabricate, guess, or synthesize job URLs or UUIDs (e.g., jobs.ashbyhq.com/company/uuid, apply.workable.com/company/j/id).
+   - Every single link in the executive table and report MUST be a real, active job posting link.
+   - If you do not have a direct ATS URL for an employer, search specifically for it (e.g. `site:jobs.lever.co "Company" "Job Title"` or `site:jobs.ashbyhq.com "Company" "Job Title"`) or DO NOT include that employer in the executive table.
+3. Each subsequent section should be thorough, using paragraphs and bullet lists only where they add clarity.
+4. Pull concrete facts and insights from your research; cite each with [Title](URL).
+5. For every role, explicitly state whether Brazil/LATAM is accepted, or flag it as unconfirmed.
+6. Note time-zone requirements — flag roles that require US Eastern or Pacific overlap, as these may be harder from BRT (UTC-3).
+7. Include contractor/PJ model notes where relevant, as many Brazilian professionals work as PJ.
+8. If relevant data is scarce, explain gaps and suggest follow-up search strategies.
+9. Write the report in Portuguese (Brazil).
 
 Citation rules:
 - Assign sequential citation numbers (1,2,3…)
