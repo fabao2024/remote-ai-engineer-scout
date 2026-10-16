@@ -23,14 +23,18 @@ from deepagents.middleware.filesystem import FilesystemMiddleware
 from deepagents.middleware.patch_tool_calls import PatchToolCallsMiddleware
 from deepagents.middleware.subagents import CompiledSubAgent, SubAgent, SubAgentMiddleware
 
+
 def _take_last_todos(a: Any, b: Any) -> Any:
     return b
+
 
 class ResilientPlanningState(PlanningState):
     todos: Annotated[list[Todo], _take_last_todos]
 
+
 class ResilientTodoListMiddleware(TodoListMiddleware):
     state_schema = ResilientPlanningState
+
 
 BASE_AGENT_PROMPT = "In order to complete the objective that the user asks of you, you have access to a number of standard tools."
 
