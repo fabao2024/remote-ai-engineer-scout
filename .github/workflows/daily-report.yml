@@ -50,7 +50,7 @@ jobs:
       - name: Validate LLM provider configuration
         env:
           LLM_MODEL: ${{ secrets.LLM_MODEL || 'gemini:gemini-2.5-flash' }}
-          LLM_FALLBACK_MODELS: ${{ secrets.LLM_FALLBACK_MODELS || 'openai:gpt-4o-mini,zhipu:glm-4-flash' }}
+          LLM_FALLBACK_MODELS: ${{ secrets.LLM_FALLBACK_MODELS || 'gemini:gemini-2.5-flash,openai:gpt-4o-mini,zhipu:glm-4-flash' }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           ZHIPUAI_API_KEY: ${{ secrets.ZHIPUAI_API_KEY }}
@@ -81,7 +81,7 @@ jobs:
           TARGET_ROLE: ${{ inputs.target_role || vars.TARGET_ROLE || secrets.TARGET_ROLE || 'Applied AI Engineer' }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           LLM_MODEL: ${{ secrets.LLM_MODEL || 'gemini:gemini-2.5-flash' }}
-          LLM_FALLBACK_MODELS: ${{ secrets.LLM_FALLBACK_MODELS || 'openai:gpt-4o-mini,zhipu:glm-4-flash' }}
+          LLM_FALLBACK_MODELS: ${{ secrets.LLM_FALLBACK_MODELS || 'gemini:gemini-2.5-flash,openai:gpt-4o-mini,zhipu:glm-4-flash' }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           ZHIPUAI_API_KEY: ${{ secrets.ZHIPUAI_API_KEY }}
           TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
