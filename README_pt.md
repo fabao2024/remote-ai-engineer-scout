@@ -18,6 +18,7 @@ Principais destaques:
 - **Roteador Multi-LLM**: Alterne facilmente entre Google Gemini (`gemini:gemini-4-argon`), OpenAI (`gpt-4o-mini`) e ZhipuAI (`glm-4`) via variável de ambiente `LLM_MODEL`.
 - **Tabela Resumo Executiva**: Cada relatório inicia com um painel rápido contendo as vagas mais recentes ordenadas de forma crescente por dias em aberto.
 - **Coordenação Multi-Agente**: O supervisor coordena subagentes de **pesquisa** e **crítica** para garantir profundidade técnica e qualidade editorial.
+- **Memória Persistente e Deduplicação**: Rastreia vagas já reportadas em `seen_jobs.json`, evitando repetições entre execuções e priorizando oportunidades inéditas.
 - **Notificação Automática via Telegram**: Envia o resumo e o arquivo `.md` completo diretamente para seu chat do Telegram com alertas de falha.
 - **Execução Agendada na Nuvem**: Roda automaticamente segundas, quartas e sextas às 08:00 BRT pelo GitHub Actions sem precisar manter o PC ligado.
 
@@ -129,6 +130,8 @@ Ao disparar manualmente o workflow no GitHub Actions (**Actions** → **Daily AI
 ```
 .
 ├─ research_agent.py            # Orquestração do agente principal e subagentes
+├─ job_tracker.py               # Utilitário de memória e deduplicação de vagas
+├─ seen_jobs.json               # Registro persistente de vagas já reportadas
 ├─ llm_router.py                # Roteador multi-provedor (Gemini, OpenAI, ZhipuAI)
 ├─ send_report_telegram.py      # Módulo de envio de relatórios via Telegram Bot
 ├─ question.txt                 # Prompt base utilizado na pesquisa

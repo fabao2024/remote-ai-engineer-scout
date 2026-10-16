@@ -1,0 +1,135 @@
+{
+  "http://job-boards.greenhouse.io/able": {
+    "appearances": 1,
+    "company": "",
+    "first_seen": "2026-10-16",
+    "last_seen": "2026-10-16",
+    "role": "30"
+  },
+  "https://job-boards.eu.greenhouse.io/invisibletech/jobs/4979734101": {
+    "appearances": 1,
+    "company": "Invisible Tech",
+    "first_seen": "2026-10-16",
+    "last_seen": "2026-10-16",
+    "role": "Software Engineer, Agentic AI"
+  },
+  "https://job-boards.greenhouse.io/able/jobs/8390893002": {
+    "appearances": 1,
+    "company": "",
+    "first_seen": "2026-10-16",
+    "last_seen": "2026-10-16",
+    "role": "AI Senior Engineer (Graph) at Able"
+  },
+  "https://job-boards.greenhouse.io/able/jobs/8538789002": {
+    "appearances": 1,
+    "company": "Able",
+    "first_seen": "2026-10-16",
+    "last_seen": "2026-10-16",
+    "role": "Principal AI Engineer"
+  },
+  "https://job-boards.greenhouse.io/coderoad/jobs/4375543009": {
+    "appearances": 1,
+    "company": "",
+    "first_seen": "2026-10-16",
+    "last_seen": "2026-10-16",
+    "role": "5"
+  },
+  "https://job-boards.greenhouse.io/coderoad/jobs/4414020009": {
+    "appearances": 1,
+    "company": "CodeRoad",
+    "first_seen": "2026-10-16",
+    "last_seen": "2026-10-16",
+    "role": "Agentic AI Engineer"
+  },
+  "https://job-boards.greenhouse.io/factored/jobs/4514946008": {
+    "appearances": 1,
+    "company": "Factored",
+    "first_seen": "2026-10-16",
+    "last_seen": "2026-10-16",
+    "role": "Senior AI Engineer (RAG/LLMs)"
+  },
+  "https://job-boards.greenhouse.io/nortal/jobs/5261238007": {
+    "appearances": 1,
+    "company": "Nortal",
+    "first_seen": "2026-10-16",
+    "last_seen": "2026-10-16",
+    "role": "Senior AI Agentic Engineer"
+  },
+  "https://job-boards.greenhouse.io/xebialatam/jobs/6000708004": {
+    "appearances": 1,
+    "company": "",
+    "first_seen": "2026-06-24",
+    "last_seen": "2026-06-24",
+    "role": "Job Application for AI Engineer at LATAM - Greenhouse"
+  },
+  "https://jobs.ashbyhq.com/blacksmith%20agency/5dfccfc8-a527-44b9-b3ec-eaee25fc3f0f": {
+    "appearances": 1,
+    "company": "Blacksmith Agency",
+    "first_seen": "2026-10-16",
+    "last_seen": "2026-10-16",
+    "role": "AI Engineer"
+  },
+  "https://jobs.ashbyhq.com/mastra/531a3fe8-556f-4b83-bee7-20374f67f980": {
+    "appearances": 1,
+    "company": "",
+    "first_seen": "2026-10-16",
+    "last_seen": "2026-10-16",
+    "role": "11"
+  },
+  "https://jobs.ashbyhq.com/montecarlodata/bee6315c-3bc5-49b8-a6c0-1c36b3b59de6": {
+    "appearances": 1,
+    "company": "Monte Carlo",
+    "first_seen": "2026-10-16",
+    "last_seen": "2026-10-16",
+    "role": "Applied AI Engineer"
+  },
+  "https://jobs.workable.com/search/brazil/remote-software-jobs": {
+    "appearances": 2,
+    "company": "",
+    "first_seen": "2026-05-06",
+    "last_seen": "2026-09-02",
+    "role": "Remote Software Jobs in Brazil - Jobs By Workable"
+  },
+  "https://remotive.com/remote-ai-jobs": {
+    "appearances": 1,
+    "company": "",
+    "first_seen": "2026-06-08",
+    "last_seen": "2026-06-08",
+    "role": "Remotive"
+  },
+  "https://remotive.com/remote/jobs/artificial-intelligence/senior-machine-learning-engineer-6141143": {
+    "appearances": 1,
+    "company": "",
+    "first_seen": "2026-10-16",
+    "last_seen": "2026-10-16",
+    "role": "7"
+  },
+  "https://weworkremotely.com/remote-jobs/a-team-senior-independent-ai-engineer-architect": {
+    "appearances": 1,
+    "company": "",
+    "first_seen": "2026-10-16",
+    "last_seen": "2026-10-16",
+    "role": "10"
+  },
+  "https://weworkremotely.com/remote-jobs/ewor-agentic-ai-design-engineer-100-remote-m-f-d": {
+    "appearances": 1,
+    "company": "",
+    "first_seen": "2026-10-16",
+    "last_seen": "2026-10-16",
+    "role": "34"
+  },
+  "https://weworkremotely.com/remote-jobs/sticker-mule-ai-agent-engineer": {
+    "appearances": 1,
+    "company": "Sticker Mule",
+    "first_seen": "2026-10-16",
+    "last_seen": "2026-10-16",
+    "role": "AI Agent Engineer"
+  },
+  "https://www.workingnomads.com/remote-artificial-intelligence-jobs": {
+    "appearances": 11,
+    "company": "",
+    "first_seen": "2026-03-18",
+    "last_seen": "2026-08-28",
+    "role": "Remote Artificial Intelligence (AI) Jobs | Working Nomads"
+  }
+}

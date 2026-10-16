@@ -24,6 +24,7 @@ TARGET_ROLE = (_explicit_role or os.environ.get("TARGET_ROLE") or "AI Engineer")
 from deepagents import create_deep_agent
 from langchain.chat_models import init_chat_model
 from tavily import TavilyClient
+from job_tracker import get_exclusion_prompt, update_seen_jobs
 
 # Reuse the Tavily client across tool invocations
 tavily_client = TavilyClient(api_key=os.environ["TAVILY_API_KEY"])
@@ -129,6 +130,8 @@ Use the research-agent to gather:
 - Application tactics, networking leads, or differentiators for Brazilian candidates
 - Search for recent open positions, maximum 2 or 3 weeks old from current date
 
+{get_exclusion_prompt(max_urls=35)}
+
 Iterate with the critique-agent whenever you need help polishing the final report.
 
 When ready, write the report to `final_report.md` in Markdown using this structure:
@@ -189,6 +192,13 @@ if __name__ == "__main__":
             report_text = "\n".join(final_data["content"]) if isinstance(final_data["content"], list) else str(final_data["content"])
             Path("final_report.md").write_text(report_text, encoding="utf-8")
             print("Successfully written final_report.md")
+
+            # Update persistent memory tracker (seen_jobs.json)
+            try:
+                new_jobs = update_seen_jobs("final_report.md")
+                print(f"Updated seen_jobs.json: {new_jobs} new positions recorded.")
+            except Exception as e:
+                print(f"Warning: Failed to update seen_jobs.json: {e}", file=sys.stderr)
         else:
             print("Warning: /final_report.md not found in agent output files.")
 
