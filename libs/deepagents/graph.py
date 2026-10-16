@@ -1,10 +1,11 @@
 """Deepagents come with planning, filesystem, and subagents."""
 
 from collections.abc import Callable, Sequence
-from typing import Any
+from typing import Annotated, Any
 
 from langchain.agents import create_agent
 from langchain.agents.middleware import HumanInTheLoopMiddleware, InterruptOnConfig, TodoListMiddleware
+from langchain.agents.middleware.todo import PlanningState, Todo
 from langchain.agents.middleware.summarization import SummarizationMiddleware
 from langchain.agents.middleware.types import AgentMiddleware
 from langchain.agents.structured_output import ResponseFormat
@@ -21,6 +22,15 @@ from deepagents.backends.protocol import BackendFactory, BackendProtocol
 from deepagents.middleware.filesystem import FilesystemMiddleware
 from deepagents.middleware.patch_tool_calls import PatchToolCallsMiddleware
 from deepagents.middleware.subagents import CompiledSubAgent, SubAgent, SubAgentMiddleware
+
+def _take_last_todos(a: Any, b: Any) -> Any:
+    return b
+
+class ResilientPlanningState(PlanningState):
+    todos: Annotated[list[Todo], _take_last_todos]
+
+class ResilientTodoListMiddleware(TodoListMiddleware):
+    state_schema = ResilientPlanningState
 
 BASE_AGENT_PROMPT = "In order to complete the objective that the user asks of you, you have access to a number of standard tools."
 
@@ -95,14 +105,14 @@ def create_deep_agent(
         model = get_default_model()
 
     deepagent_middleware = [
-        TodoListMiddleware(),
+        ResilientTodoListMiddleware(),
         FilesystemMiddleware(backend=backend),
         SubAgentMiddleware(
             default_model=model,
             default_tools=tools,
             subagents=subagents if subagents is not None else [],
             default_middleware=[
-                TodoListMiddleware(),
+                ResilientTodoListMiddleware(),
                 FilesystemMiddleware(backend=backend),
                 SummarizationMiddleware(
                     model=model,
