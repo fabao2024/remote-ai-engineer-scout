@@ -1,52 +1,68 @@
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue)
 ![LangChain](https://img.shields.io/badge/LangChain-DeepAgents-4B8BBE)
-![CI](https://github.com/fabao2024/remote-ai-engineer-scout/actions/workflows/ci.yml/badge.svg)
+![CI](https://github.com/fabao2024/remote-ai-engineer-scout/actions/workflows/daily-report.yml/badge.svg)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-# Remote AI Engineer Scout
+# 🧠🤖 Remote AI Engineer Scout
 
 <img width="608" height="605" alt="image" src="https://github.com/user-attachments/assets/3c2cd325-c458-4cf1-a49c-92be0fb34fd5" />
 
-> Construído sobre [langchain-ai/deepagents](https://github.com/langchain-ai/deepagents) e adaptado para mapear vagas remotas de AI Engineer em tempo real.  
-> Idiomas: [English](README.md) · Português (este arquivo)
+> Construído sobre [langchain-ai/deepagents](https://github.com/langchain-ai/deepagents) e adaptado para mapear, validar deterministamente e entregar vagas remotas de Engenharia de IA abertas para profissionais no Brasil/LATAM em tempo real.  
+> Idiomas: [English](README.md) · **Português** (este arquivo)
+
+---
 
 ## Visão Geral
 
-Este repositório traz um agente autônomo “deep” desenvolvido com **DeepAgents + LangChain**, utilizando por padrão o modelo **Google Gemini (`gemini:gemini-2.5-flash`)** através de um roteador extensível de LLMs, subagentes especializados e a API do **Tavily** para buscas na web em tempo real. Cada execução mapeia vagas remotas de Engenharia de IA, valida critérios de elegibilidade para o Brasil/LATAM, cruza requisitos técnicos, salários em dólar, regimes tributários (PJ) e fusos horários, gerando um dossiê executivo em Markdown.
+O **Remote AI Engineer Scout** é um agente autônomo de pesquisa profunda construído com **DeepAgents + LangChain**, operando por padrão com modelos Google Gemini (`gemini:gemini-4-argon` / `gemini:gemini-2.5-flash`) por meio de um roteador multi-provedor extensível, subagentes especializados e a API do **Tavily** para buscas web em tempo real.
 
-Principais destaques:
-- **Roteador Multi-LLM**: Alterne facilmente entre Google Gemini (`gemini:gemini-2.5-flash`), OpenAI (`gpt-4o-mini`) e ZhipuAI (`glm-4`) via variável de ambiente `LLM_MODEL`.
-- **Tabela Resumo Executiva**: Cada relatório inicia com um painel rápido contendo as vagas mais recentes ordenadas de forma crescente por dias em aberto.
-- **Coordenação Multi-Agente**: O supervisor coordena subagentes de **pesquisa** e **crítica** para garantir profundidade técnica e qualidade editorial.
-- **Memória Persistente e Deduplicação**: Rastreia vagas já reportadas em `seen_jobs.json`, evitando repetições entre execuções e priorizando oportunidades inéditas.
-- **Auditoria Determinística de Links e Elegibilidade**: Pré-valida cada vaga via requisições assíncronas com `httpx`, eliminando links 404, detectando vagas encerradas e auditando a elegibilidade Brasil/LATAM na fonte antes da publicação.
-- **Notificação Automática via Telegram**: Envia o resumo e o arquivo `.md` completo diretamente para seu chat do Telegram com alertas de falha.
-- **Execução Agendada na Nuvem**: Roda automaticamente segundas, quartas e sextas às 08:00 BRT pelo GitHub Actions sem precisar manter o PC ligado.
+A cada execução, o agente descobre vagas remotas abertas para o cargo configurado, valida a elegibilidade geográfica na fonte (priorizando Brasil, LATAM e Worldwide Remote), analisa stacks técnicas, faixas salariais em dólar e regimes contratuais (PJ/CLT), e emite um dossiê executivo em Markdown entregue diretamente no seu Telegram.
+
+### Principais Destaques
+
+- 🎯 **Customização do Cargo Alvo**: Pesquise qualquer posição (ex.: `Applied AI Engineer`, `Agentic AI Engineer`, `Forward Deployed AI Engineer`, `Data Engineer`, `MLOps`) simplesmente alterando `TARGET_ROLE` no `.env`, via linha de comando ou via GitHub Actions.
+- 🛡️ **Validador Determinístico de URLs com Detecção por ATS**: Auditor assíncrono (`url_validator.py`) com `httpx` que elimina 404s, detecta vagas encerradas e trata peculiaridades de ATS (como cascas vazias de SPA no Ashby, redirecionamentos para `/oops` no Workable e erros no Greenhouse).
+- 🧠 **Memória Persistente e Deduplicação**: Registra as vagas já descobertas em `seen_jobs.json` com normalização de URLs, priorizando oportunidades inéditas e impedindo repetições entre execuções.
+- ⚡ **Middleware Resiliente de Estado no LangGraph**: Implementa o `ResilientTodoListMiddleware` em `libs/deepagents/graph.py` com canal redutor de estado (`take_last`) para suportar chamadas concorrentes/paralelas a ferramentas sem colisões de estado no LangGraph.
+- 🚫 **Guardrails de Tolerância Zero para Alucinação de Links**: Regras estritas nos prompts do supervisor e do pesquisador garantem que todo link citado no relatório venha exclusivamente de resultados reais de busca de ATS—sem UUIDs fabricados.
+- 🔄 **Roteador Multi-LLM**: Alterne facilmente entre Google Gemini (`gemini:gemini-4-argon`, `gemini:gemini-2.5-flash`), OpenAI (`gpt-4o-mini`) e ZhipuAI (`glm-4`), com retry automático (`max_retries=6`).
+- 📊 **Tabela Resumo Executiva**: Todo relatório se inicia com um painel rápido ordenado de forma estritamente crescente por dias em aberto (vagas mais recentes primeiro).
+- 📱 **Notificação Automática via Telegram**: Envia a prévia da tabela em Markdown e anexa o relatório completo (`final_report.md`) diretamente no chat do seu Telegram.
+- ☁️ **Execução em Nuvem via GitHub Actions**: Roda automaticamente segundas, quartas e sextas às 08:00 BRT (11:00 UTC), versionando e sincronizando relatórios e memórias no repositório.
+
+---
 
 ## Arquitetura em Alto Nível
 
 ```
-Usuário / GitHub Actions → research_agent.py
-                                 ├─ llm_router.py (Gemini 2.5 Flash com fallbacks OpenAI/ZhipuAI)
-                                 ├─ create_deep_agent(...)
-                                 │     ├─ Subagente “research-agent” (usa Tavily)
-                                 │     └─ Subagente “critique-agent”
-                                 ├─ Ferramentas: internet_search, filesystem middleware
-                                 ├─ Saídas: final_report.md + question.txt
-                                 └─ Entrega: send_report_telegram.py (Mensagem + Anexo .md)
+Usuário / GitHub Actions
+        │
+        ▼
+   research_agent.py
+        ├─ llm_router.py (Gemini 4 Argon / 2.5 Flash com fallbacks OpenAI/ZhipuAI)
+        ├─ create_deep_agent(...) [libs/deepagents]
+        │     ├─ ResilientTodoListMiddleware (Redutor de estado para chamadas paralelas)
+        │     ├─ Subagente "research-agent" (Busca Tavily + Regras Anti-Alucinação)
+        │     └─ Subagente "critique-agent" (Auditoria editorial + Ordenação da tabela)
+        ├─ url_validator.py (Auditor assíncrono HTTP e de elegibilidade por ATS)
+        ├─ job_tracker.py (Memória e deduplicação via seen_jobs.json)
+        ├─ Saídas: final_report.md + question.txt
+        └─ Entrega: send_report_telegram.py (Alerta no Telegram + Anexo .md)
 ```
+
+---
 
 ## Pré-requisitos
 
 - Python 3.10+
-- Dependências listadas em `pyproject.toml` / `requirements.txt`
+- [uv](https://github.com/astral-sh/uv) (recomendado) ou `pip` + `venv` padrão
 - Variáveis de ambiente configuradas no arquivo `.env` (duplique a partir de `.env.example`):
-  - `GEMINI_API_KEY` (Obrigatória para o modelo padrão `gemini:gemini-2.5-flash`)
-  - `TAVILY_API_KEY` (Obrigatória para busca web)
+  - `GEMINI_API_KEY` (Obrigatória para os modelos Gemini padrão)
+  - `TAVILY_API_KEY` (Obrigatória para buscas em tempo real)
   - `TELEGRAM_BOT_TOKEN` e `TELEGRAM_CHAT_ID` (Obrigatórias para entrega e alertas no Telegram)
   - `OPENAI_API_KEY` (Opcional, apenas se for usar modelos da OpenAI)
   - `ZHIPUAI_API_KEY` (Opcional, apenas se for usar modelos da ZhipuAI)
-  - `LANGCHAIN_API_KEY`, `LANGCHAIN_TRACING_V2=true`, `LANGCHAIN_PROJECT` (Opcionais, para tracing no LangSmith)
+  - `LANGCHAIN_API_KEY`, `LANGCHAIN_TRACING_V2=false`, `LANGCHAIN_PROJECT` (Opcionais, para tracing no LangSmith)
 
 ### Configuração do Arquivo de Ambiente
 
@@ -56,21 +72,23 @@ Copie o arquivo de exemplo para iniciar o seu `.env`:
 cp .env.example .env
 ```
 
-| Variável | Obrigatória | Exemplo | Uso |
+| Variável | Obrigatória | Padrão / Exemplo | Uso |
 |---|---|---|---|
-| `TARGET_ROLE` | Não | `Applied AI Engineer` | Cargo/posição a ser pesquisada (padrão: `Applied AI Engineer`) |
-| `LLM_MODEL` | Não | `gemini:gemini-2.5-flash` | Provedor e modelo alvo |
-| `LLM_FALLBACK_MODELS` | Não | `openai:gpt-4o-mini,zhipu:glm-4-flash` | Cadeia de fallback separada por vírgulas |
-| `GEMINI_API_KEY` | Sim (p/ padrão) | `AQ...` | Chave da Google AI Studio |
-| `TAVILY_API_KEY` | Sim | `tvly-...` | Ferramenta de busca Tavily |
-| `TELEGRAM_BOT_TOKEN` | Sim | `123456:ABC...` | Token do bot via @BotFather |
-| `TELEGRAM_CHAT_ID` | Sim | `809564944` | ID numérico do seu chat/canal |
-| `OPENAI_API_KEY` | Opcional | `sk-...` | Chave da OpenAI (se usar GPT) |
-| `ZHIPUAI_API_KEY` | Opcional | `435...` | Chave ZhipuAI (se usar GLM) |
+| `TARGET_ROLE` | Não | `Applied AI Engineer` | Cargo/posição a ser pesquisada |
+| `LLM_MODEL` | Não | `gemini:gemini-4-argon` | Provedor e modelo principal |
+| `LLM_FALLBACK_MODELS` | Não | `gemini:gemini-2.5-flash,openai:gpt-4o-mini` | Cadeia de fallback em caso de falha |
+| `GEMINI_API_KEY` | Sim (p/ padrão) | `AIzaSy...` | Chave de API da Google AI Studio |
+| `TAVILY_API_KEY` | Sim | `tvly-...` | Chave da ferramenta de busca Tavily |
+| `TELEGRAM_BOT_TOKEN` | Sim | `123456:ABC...` | Token do bot via [@BotFather](https://t.me/BotFather) |
+| `TELEGRAM_CHAT_ID` | Sim | `809564944` | ID numérico do seu usuário ou chat no Telegram |
+| `OPENAI_API_KEY` | Opcional | `sk-...` | Chave de API da OpenAI |
+| `ZHIPUAI_API_KEY` | Opcional | `435...` | Chave de API da ZhipuAI |
+
+---
 
 ## Instalação
 
-Utilizando `uv` (recomendado):
+Utilizando `uv` (recomendado pela rapidez):
 
 ```bash
 uv sync --frozen
@@ -85,250 +103,164 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
+---
+
 ## Como Executar
 
+Execute o agente localmente:
+
 ```bash
-python research_agent.py
+uv run python research_agent.py
+# ou: python research_agent.py
 ```
 
-Fluxo de execução:
-1. Lê `question.txt` (ou o prompt padrão voltado a profissionais do Brasil).
-2. Dispara o agente profundo com Gemini 2.5 Flash, consultando a web em tempo real via Tavily.
-3. O subagente de crítica audita a completude do relatório e a ordem crescente da tabela resumo.
-4. Grava `final_report.md` e envia automaticamente a notificação e o anexo para o seu Telegram.
+### Ciclo de Execução
+
+1. **Injeção de Cargo e Memória**: Lê `TARGET_ROLE` e injeta a lista de URLs recentes de `seen_jobs.json` no prompt do supervisor para evitar repetições.
+2. **Pesquisa Autônoma**: O agente profundo consulta o Tavily buscando vagas publicadas nas últimas 1 a 3 semanas que atendam aos critérios de trabalho remoto a partir do Brasil.
+3. **Crítica Editorial**: O subagente de crítica avalia a profundidade técnica, estrutura do texto e ordenação da tabela.
+4. **Auditoria Determinística de URLs**: O módulo `url_validator.py` realiza requisições assíncronas para cada link, expurgando 404s, vagas fechadas e cascas vazias de ATS.
+5. **Persistência na Memória**: O `job_tracker.py` registra as vagas ativas validadas no `seen_jobs.json`.
+6. **Disparo no Telegram**: Envia a tabela executiva e anexa o arquivo `final_report.md` no seu chat.
+
+---
 
 ## 🎯 Como Customizar o Cargo Buscado
 
-Você pode pesquisar qualquer cargo simplesmente definindo a variável `TARGET_ROLE` no seu arquivo `.env` (caso não seja informada, o padrão é `AI Engineer`):
+Você pode pesquisar qualquer cargo simplesmente definindo `TARGET_ROLE` no seu arquivo `.env`:
 
 ```env
-# No seu arquivo .env
-TARGET_ROLE=Machine Learning Engineer
+TARGET_ROLE=Applied AI Engineer
 ```
 
 ### Exemplos de Cargos Suportados
+- `TARGET_ROLE=Applied AI Engineer`
+- `TARGET_ROLE=Agentic AI Engineer`
+- `TARGET_ROLE=Forward Deployed AI Engineer`
 - `TARGET_ROLE=Machine Learning Engineer`
 - `TARGET_ROLE=Data Engineer`
 - `TARGET_ROLE=MLOps Engineer`
-- `TARGET_ROLE=Full Stack Developer`
-- `TARGET_ROLE=AI Product Manager`
 
-### Alterando o Cargo Apenas para uma Execução via Terminal
+### Alterando o Cargo em Execução Única via Terminal
+
 Você pode sobrepor o cargo temporariamente sem precisar editar o `.env`:
 
 ```bash
 # Windows (PowerShell)
-$env:TARGET_ROLE="Data Engineer"; uv run python research_agent.py
+$env:TARGET_ROLE="Agentic AI Engineer"; uv run python research_agent.py
 
 # Linux / macOS
-TARGET_ROLE="Data Engineer" uv run python research_agent.py
+TARGET_ROLE="Agentic AI Engineer" uv run python research_agent.py
 ```
 
 ### Alterando o Cargo no GitHub Actions
-Ao disparar manualmente o workflow no GitHub Actions (**Actions** → **Daily AI Engineer Scout Report** → **Run workflow**), digite o cargo desejado no campo **Target job title to search for**.
 
-## Estrutura do Repositório
+Ao disparar manualmente o workflow no GitHub Actions (**Actions** → **Daily AI Engineer Scout Report** → **Run workflow**), informe o cargo desejado no campo **Target job title to search for**.
+
+---
+
+## 🛡️ Validador Determinístico de URLs com Detecção por ATS
+
+Plataformas de recrutamento e ATS (Applicant Tracking Systems) costumam lidar com vagas encerradas de formas singulares que enganam verificações HTTP comuns. O nosso validador aprimorado em `url_validator.py` aplica heurísticas específicas:
+
+- **Ashby (`jobs.ashbyhq.com`)**: Quando uma vaga é excluída, o Ashby responde com **HTTP 200**, mas entrega uma casca de SPA vazia com `<title>Jobs</title>` e sem metatags `og:title`. O validador detecta essa assinatura e descarta a vaga.
+- **Workable (`apply.workable.com`)**: Vagas fechadas são redirecionadas para `/oops` ou `?not_found=true`. O validador intercepta esses redirecionamentos e purga a linha da tabela.
+- **Greenhouse (`boards.greenhouse.io`)**: Vagas expiradas redirecionam com `?error=true` ou retornam status 404.
+- **Lever (`jobs.lever.co`) / Teamtailor / InHire**: Detecta status 404, avisos de vaga inativa no corpo da página e redirecionamentos para a raiz de carreiras.
+- **Filtro Geográfico Estrito**: Identifica restrições rígidas para os EUA sem exceção para o Brasil/LATAM e remove a oportunidade da lista.
+
+Você pode rodar o auditor diretamente em qualquer relatório a qualquer momento:
+
+```bash
+uv run python url_validator.py
+```
+
+---
+
+## ⚡ Middleware de Estado Resiliente no LangGraph
+
+Modelos de linguagem modernos (como o Gemini 4 Argon) frequentemente executam múltiplas chamadas a ferramentas em paralelo no mesmo passo. O middleware padrão `TodoListMiddleware` do LangGraph não definia um redutor para o canal `todos`, gerando o erro:
+
+```
+InvalidUpdateError: At key 'todos': Can receive only one value per step.
+```
+
+Em [`libs/deepagents/graph.py`](libs/deepagents/graph.py), introduzimos o `ResilientTodoListMiddleware` com um canal anotado e função redutora:
+
+```python
+def _take_last_todos(a: Any, b: Any) -> Any:
+    return b
+
+class ResilientPlanningState(PlanningState):
+    todos: Annotated[list[Todo], _take_last_todos]
+
+class ResilientTodoListMiddleware(TodoListMiddleware):
+    state_schema = ResilientPlanningState
+```
+
+Essa modificação garante execução paralela estável e livre de falhas de concorrência.
+
+---
+
+## 📂 Estrutura do Repositório
 
 ```
 .
-├─ research_agent.py            # Orquestração do agente principal e subagentes
-├─ url_validator.py             # Validador HTTP de links ativos e detector de vagas encerradas
+├─ libs/
+│  └─ deepagents/               # Engine customizada do DeepAgents com ResilientTodoListMiddleware
+├─ research_agent.py            # Orquestração do agente principal, prompts e subagentes
+├─ url_validator.py             # Validador HTTP de URLs com heurísticas de ATS e sanitizador
 ├─ job_tracker.py               # Utilitário de memória e deduplicação de vagas
 ├─ seen_jobs.json               # Registro persistente de vagas já reportadas
 ├─ llm_router.py                # Roteador multi-provedor (Gemini, OpenAI, ZhipuAI)
 ├─ send_report_telegram.py      # Módulo de envio de relatórios via Telegram Bot
-├─ question.txt                 # Prompt base utilizado na pesquisa
-├─ final_report.md              # Último relatório gerado
+├─ question.txt                 # Prompt base utilizado na pesquisa atual
+├─ final_report.md              # Último relatório gerado com vagas 100% ativas
 ├─ reports/                     # Histórico versionado de relatórios diários
 ├─ .env.example                 # Modelo base para variáveis de ambiente
 ├─ .github/workflows/
 │  └─ daily-report.yml          # Pipeline de automação do GitHub Actions
 ├─ pyproject.toml / uv.lock     # Gerenciamento de dependências
 ├─ README.md                    # Documentação em inglês
-└─ README_pt.md                 # Documentação em português
+└─ README_pt.md                 # Documentação em português (este arquivo)
 ```
 
-## Personalização
+---
 
-```
-Find remote AI Engineer roles hiring now aligned with my profile.
+## 📱 Automação e Entrega via Telegram
 
-# Scope
-- Focus: Senior AI/ML Engineer roles
-- Region: Americas (Remote, LATAM-friendly)
-- Tech: Python, LangChain, Vector DBs, LLM Ops
-- Exclude: Onsite-only, internships
-```
+O workflow do GitHub Actions (`.github/workflows/daily-report.yml`) opera de forma automatizada:
 
-- **Prompt & escopo** – ajuste `question.txt` para focar em LATAM, vagas júnior, stacks específicas etc.
-- **Busca fresca** – passe `time_range="day"` ao Tavily em `internet_search` para priorizar posts do dia.
-- **Histórico de relatórios** – salve cada corrida em `reports/final_report_YYYYMMDD.md`.
-- **Novas fontes** – conecte APIs de job boards, Slack, Google Sheets via middleware customizado.
-- **Metadados no LangSmith** – use `agent.invoke(..., config={"metadata": {...}})` para etiquetar execuções.
+1. **Agendamento**: Segundas, quartas e sextas às 08:00 BRT (11:00 UTC).
+2. **Execução do Agente**: Pesquisa, filtra e gera o arquivo `final_report.md`.
+3. **Sanitização de URLs e Memória**: Audita todos os links, remove vagas fechadas e salva o `seen_jobs.json` atualizado.
+4. **Disparo no Telegram**: Envia a tabela executiva formatada e o anexo completo do relatório para o chat configurado.
 
-## Problemas Comuns
+### Secrets Necessárias no GitHub Actions
 
-- `KeyError: 'TAVILY_API_KEY'` – exporte a variável antes de executar.
-- `Failed to POST https://api.smith.langchain.com...` – credenciais/projeto do LangSmith ausentes; desligue o tracing se não precisar.
-- Avisos `typing.NotRequired` – já substituídos por tipos opcionais padrão nos middlewares customizados.
+Configure estas secrets em seu repositório (`Settings > Secrets and variables > Actions`):
 
-## Rastreamento e Custos
-
-### LangSmith
-1. Exporte `LANGCHAIN_TRACING_V2=true`, `LANGCHAIN_API_KEY` e `LANGCHAIN_PROJECT`.
-2. Rode `python research_agent.py`; cada execução gera um trace completo com ferramentas, prompts e tokens.
-3. No painel do LangSmith, registre:
-   - Horário + descrição (adicione `metadata` para rotular automaticamente).
-   - `prompt_tokens`, `completion_tokens`, `total_tokens` e custo estimado.
-4. Compartilhe screenshots ou use **Export CSV**. Exemplo:
-
-| Execução     | Consulta                               | Prompt Tokens | Completion Tokens | Custo (USD) |
-|--------------|----------------------------------------|---------------|-------------------|-------------|
-| 2024-06-30 AM | Find remote AI Engineer roles...        | 6.245         | 4.108             | $0,21       |
-| 2024-06-30 PM | Senior AI roles LATAM-friendly          | 7.002         | 4.887             | $0,24       |
-
-### Portal da OpenAI / Usage API
-
-- Confira [https://platform.openai.com/usage](https://platform.openai.com/usage) para os números oficiais.
-- Capture `result["usage"]` após `agent.invoke(...)` e salve em `reports/usage_logs/YYYYMMDD.json`.
-- Publique resumos mensais neste README ou em `docs/usage.md`.
-
-## Resultado Esperado (exemplo)
-
-```
-# Remote AI Engineer Opportunities Brief
-
-## Market Snapshot
-Mercado remoto segue aquecido, com empresas exigindo ownership de ML fim a fim, experiência com LLMs em produção e alguma sobreposição com fusos das Américas.
-
-## Active Remote Employers
-- Tech.co – squads distribuídos com foco em IA.
-- Hiring Agents – vagas mid/senior chegando a US$ 282K.
-- Indeed – cerca de 1.900 anúncios remotos atualizados diariamente.
-- Remote Rocketship – curadoria para engenheiros de IA (incluindo júnior).
-- LinkedIn – mais de 74 mil oportunidades remotas em IA.
-
-## Representative Openings
-1. Staff AI Engineer – Curai Health (EUA, remoto).
-2. Senior AI Engineer – Jitterbit (Índia, remoto).
-3. AI Engineer Level IV – Premera (EUA, remoto).
-4. AI Developer – BambooWorks (EUA, remoto).
-
-## Required Skills & Stack
-Python/Java para serviços em produção, modelagem de dados, deploy/monitoramento de ML, MLOps em AWS/GCP, bancos vetoriais e práticas de ética/bias.
-
-## Compensation & Location Notes
-Faixa típica entre US$ 100K–240K; algumas vagas aceitam candidatos globais e outras pedem sobreposição com EUA/Europa.
-
-## Application Strategy
-Faça networking no LinkedIn, monitore job boards remotos, personalize o CV por vaga e destaque projetos ou contribuições OSS.
-
-## Sources
-1. Tech.co – Remote Jobs
-2. Hiring Agents – AI Engineer listings
-3. Indeed – Remote AI Engineer jobs
-4. Remote Rocketship – Junior AI Engineer feed
-5. LinkedIn – Remote AI jobs
-```
-
-## Automação e Entrega via Telegram
-
-> ⚠️ **AVISO DE SEGURANÇA**: Este é um repositório **público**. Nunca commite chaves de API nem o seu arquivo `.env` no código!
-> Todas as chaves devem ser armazenadas em [GitHub Secrets](https://docs.github.com/pt/actions/security-guides/using-secrets-in-github-actions).
-
-O repositório inclui um workflow do GitHub Actions (`.github/workflows/daily-report.yml`) que automaticamente:
-
-1. **Executa às segundas, quartas e sextas às 08:00 BRT (11:00 UTC)**
-2. **Roda o agente de pesquisa** com o Gemini 2.5 Flash para mapear vagas verificadas
-3. **Valida o relatório** através do subagente de crítica
-4. **Salva relatórios com timestamp** no diretório `reports/`
-5. **Envia a notificação diretamente para o seu Telegram** (resumo em texto + anexo `.md` completo)
-
-### Instruções de Configuração
-
-#### 1. Secrets Necessários no GitHub
-
-Configure estes secrets nas configurações do repositório (`Settings > Secrets and variables > Actions`):
-
-| Secret | Obrigatório | Descrição |
+| Secret | Obrigatória | Descrição |
 |---|---|---|
-| `GEMINI_API_KEY` | Sim (p/ padrão) | Chave da Google AI Studio |
-| `TAVILY_API_KEY` | Sim | Chave API do Tavily para busca web |
-| `TELEGRAM_BOT_TOKEN` | Sim | Token do bot via [@BotFather](https://t.me/BotFather) |
-| `TELEGRAM_CHAT_ID` | Sim | ID do chat ou canal para recebimento |
-| `LLM_MODEL` | Opcional | Identificador do modelo (padrão: `gemini:gemini-2.5-flash`) |
-| `LLM_FALLBACK_MODELS` | Opcional | Provedores de fallback separados por vírgula |
-| `OPENAI_API_KEY` | Opcional | Necessário se for rodar modelos da OpenAI |
-| `ZHIPUAI_API_KEY` | Opcional | Necessário se for rodar modelos da ZhipuAI |
-| `LANGCHAIN_API_KEY` | Opcional | Para rastreamento LangSmith |
-| `LANGCHAIN_TRACING_V2` | Opcional | Defina como `true` para ativar rastreamento |
-| `LANGCHAIN_PROJECT` | Opcional | Nome do projeto no LangSmith |
+| `GEMINI_API_KEY` | Sim (padrão) | Chave de API da Google AI Studio |
+| `TAVILY_API_KEY` | Sim | Chave de API do Tavily |
+| `TELEGRAM_BOT_TOKEN` | Sim | Token do bot fornecido pelo [@BotFather](https://t.me/BotFather) |
+| `TELEGRAM_CHAT_ID` | Sim | ID numérico do chat via [@userinfobot](https://t.me/userinfobot) |
+| `OPENAI_API_KEY` | Opcional | Chave da OpenAI (se usar GPT) |
+| `ZHIPUAI_API_KEY` | Opcional | Chave da ZhipuAI (se usar GLM) |
 
-#### 2. Configuração do Bot do Telegram
+---
 
-1. Abra o Telegram e inicie uma conversa com [@BotFather](https://t.me/BotFather) para criar seu bot (`/newbot`).
-2. Copie o token HTTP gerado e cadastre como `TELEGRAM_BOT_TOKEN`.
-3. Obtenha seu Chat ID enviando uma mensagem para [@userinfobot](https://t.me/userinfobot) ou acessando `https://api.telegram.org/bot<TOKEN>/getUpdates`.
-4. Cadastre o número retornado como `TELEGRAM_CHAT_ID`.
+## 🔒 Boas Práticas de Segurança
 
-#### 3. Execução Manual
+> ⚠️ **AVISO DE SEGURANÇA**: Nunca commite arquivos `.env` ou chaves de API no repositório.
 
-Você pode executar o workflow manualmente a qualquer momento:
-- Vá para **Actions > Daily AI Engineer Scout Report** no seu repositório GitHub
-- Clique em **Run workflow**
+- Chaves de API devem ser injetadas exclusivamente via variáveis de ambiente ou GitHub Secrets.
+- O `.gitignore` está configurado para barrar credenciais e arquivos sensíveis (`.env`, `*.pem`, `credentials.json`).
+- Se expuser uma chave acidentalmente, revogue-a imediatamente no console do provedor.
 
-### Formato de Entrega no Telegram
+---
 
-O envio para o Telegram contém:
-- **Tabela Resumo Executiva** listando as oportunidades mais recentes ordenadas por idade do post.
-- **Resumo formatado em texto** com destaques de mercado, faixas salariais e stack técnica.
-- **Arquivo anexo em Markdown (`final_report.md`)** com o dossiê completo e todas as fontes citadas.
+## 📄 Licença
 
-## Segurança e Proteção de Chaves
-
-Como este é um **repositório público**, siga estas regras estritas:
-
-### ✅ SEGURO - Use GitHub Secrets
-Chaves de API são armazenadas criptografadas no GitHub e expostas apenas aos Actions em tempo de execução:
-
-```yaml
-env:
-  OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}  # ✅ Seguro
-```
-
-### ❌ NUNCA FAÇA ISSO
-```python
-# Hardcoding de chaves no código
-openai.api_key = "sk-..."  # ❌ NUNCA!
-
-# Commitar arquivos .env
-OPENAI_API_KEY=sk-...  # ❌ NUNCA commite .env!
-```
-
-### Protegido pelo .gitignore
-Os seguintes padrões estão bloqueados de serem commitados:
-- `.env`, `.envrc`, `.env*.local`
-- `*.pem`, `*.key`
-- `secrets/`, `secrets.*`
-- `config.local.json`, `credentials.json`
-
-### Se Você Expor uma Chave Acidentalmente
-1. **Revogue imediatamente** no painel do provedor:
-   - [OpenAI](https://platform.openai.com/api-keys)
-   - [Anthropic](https://console.anthropic.com/settings/keys)
-   - [Tavily](https://app.tavily.com/home)
-2. Gere uma nova chave
-3. Atualize o GitHub Secret
-4. Considere a chave antiga comprometida (mesmo removida do git, está no histórico)
-
-## Roadmap
-
-- [x] Persistir relatórios diários em `reports/`.
-- [x] Automatizar execução diária + envio por email
-- Adicionar testes de regressão para os middlewares customizados.
-- Adicionar roteamento de LLM para melhor ROI
-
-## Créditos
-
-- Baseado em [DeepAgents](https://github.com/langchain-ai/deepagents) e sua arquitetura de agentes profundos.
-- Inspirado por ferramentas como Claude Code, Anthropic Deep Research e Manus.
+Este projeto está sob a licença [MIT](LICENSE).
