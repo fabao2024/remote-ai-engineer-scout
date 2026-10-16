@@ -19,6 +19,7 @@ Highlights:
 - **Executive Summary Table**: Every report features an executive quick-view table sorted in ascending order by days open (newest roles first).
 - **Supervisor & Critique Subagents**: Orchestrates **research** and **critique** subagents to guarantee comprehensive, essay-grade analysis.
 - **Persistent Memory & Deduplication**: Tracks previously seen positions in `seen_jobs.json` to prioritize fresh opportunities and prevent duplicate postings across runs.
+- **Deterministic URL Health & Eligibility Audit**: Pre-validates each job link asynchronously via `httpx` to eliminate 404s, detect closed positions, and enforce geographical eligibility before delivery.
 - **Automated Telegram Delivery**: Sends report previews and `.md` attachments directly to your Telegram chat, with failure alert dispatching.
 - **Scheduled Cloud Execution**: Runs Mon/Wed/Fri at 8:00 AM BRT via GitHub Actions without requiring your computer to stay on.
 
@@ -130,6 +131,7 @@ When triggering the workflow manually via GitHub Actions (**Actions** → **Dail
 ```
 .
 ├─ research_agent.py            # Main agent orchestration + subagent definitions
+├─ url_validator.py             # Deterministic URL health checker and closed job detector
 ├─ job_tracker.py               # Memory tracker and URL deduplication utility
 ├─ seen_jobs.json               # Persistent registry of previously reported jobs
 ├─ llm_router.py                # Multi-provider LLM router (Gemini, OpenAI, ZhipuAI)

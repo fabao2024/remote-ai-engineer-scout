@@ -193,7 +193,21 @@ if __name__ == "__main__":
             Path("final_report.md").write_text(report_text, encoding="utf-8")
             print("Successfully written final_report.md")
 
-            # Update persistent memory tracker (seen_jobs.json)
+            # Deterministic URL health check and eligibility audit
+            try:
+                from url_validator import sanitize_report
+                print("Auditing and sanitizing job URLs in final report...")
+                audit_result = sanitize_report("final_report.md")
+                rem_count = audit_result.get("removed_count", 0)
+                val_count = audit_result.get("valid_count", 0)
+                if rem_count > 0:
+                    print(f"Audit complete: {rem_count} closed/invalid positions removed ({val_count} remain active).")
+                else:
+                    print(f"Audit complete: All {val_count} positions are 100% active and verified.")
+            except Exception as e:
+                print(f"Warning: URL sanitization failed: {e}", file=sys.stderr)
+
+            # Update persistent memory tracker (seen_jobs.json) with verified active jobs
             try:
                 new_jobs = update_seen_jobs("final_report.md")
                 print(f"Updated seen_jobs.json: {new_jobs} new positions recorded.")

@@ -19,6 +19,7 @@ Principais destaques:
 - **Tabela Resumo Executiva**: Cada relatório inicia com um painel rápido contendo as vagas mais recentes ordenadas de forma crescente por dias em aberto.
 - **Coordenação Multi-Agente**: O supervisor coordena subagentes de **pesquisa** e **crítica** para garantir profundidade técnica e qualidade editorial.
 - **Memória Persistente e Deduplicação**: Rastreia vagas já reportadas em `seen_jobs.json`, evitando repetições entre execuções e priorizando oportunidades inéditas.
+- **Auditoria Determinística de Links e Elegibilidade**: Pré-valida cada vaga via requisições assíncronas com `httpx`, eliminando links 404, detectando vagas encerradas e auditando a elegibilidade Brasil/LATAM na fonte antes da publicação.
 - **Notificação Automática via Telegram**: Envia o resumo e o arquivo `.md` completo diretamente para seu chat do Telegram com alertas de falha.
 - **Execução Agendada na Nuvem**: Roda automaticamente segundas, quartas e sextas às 08:00 BRT pelo GitHub Actions sem precisar manter o PC ligado.
 
@@ -130,6 +131,7 @@ Ao disparar manualmente o workflow no GitHub Actions (**Actions** → **Daily AI
 ```
 .
 ├─ research_agent.py            # Orquestração do agente principal e subagentes
+├─ url_validator.py             # Validador HTTP de links ativos e detector de vagas encerradas
 ├─ job_tracker.py               # Utilitário de memória e deduplicação de vagas
 ├─ seen_jobs.json               # Registro persistente de vagas já reportadas
 ├─ llm_router.py                # Roteador multi-provedor (Gemini, OpenAI, ZhipuAI)
