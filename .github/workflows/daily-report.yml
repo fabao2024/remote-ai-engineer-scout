@@ -5,6 +5,12 @@ on:
     # Runs Mon/Wed/Fri at 8:00 AM BRT (11:00 AM UTC)
     - cron: '0 11 * * 1,3,5'
   workflow_dispatch:  # Allow manual trigger
+    inputs:
+      target_role:
+        description: 'Target job title to search for'
+        required: false
+        default: 'Applied AI Engineer'
+        type: string
 
 permissions:
   contents: write
@@ -38,6 +44,7 @@ jobs:
 
       - name: Run research agent
         env:
+          TARGET_ROLE: ${{ inputs.target_role || vars.TARGET_ROLE || secrets.TARGET_ROLE || 'Applied AI Engineer' }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           LLM_MODEL: ${{ secrets.LLM_MODEL }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}

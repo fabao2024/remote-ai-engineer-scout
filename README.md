@@ -56,6 +56,7 @@ cp .env.example .env
 
 | Variable | Required | Example | Purpose |
 |---|---|---|---|
+| `TARGET_ROLE` | No | `AI Engineer` | Target job position to search for (default: `AI Engineer`) |
 | `LLM_MODEL` | No | `gemini:gemini-4-argon` | Target model provider & name |
 | `GEMINI_API_KEY` | Yes (for default) | `AQ...` | Google AI Studio API key |
 | `TAVILY_API_KEY` | Yes | `tvly-...` | Web search tool |
@@ -92,6 +93,36 @@ Execution flow:
 2. Spawns the deep agent using Gemini 4 Argon, querying Tavily for fresh postings.
 3. Subagent critique validates depth, structure, and executive summary table sorting.
 4. Writes `final_report.md` and automatically sends the report to your Telegram chat.
+
+## 🎯 Customizing the Target Role
+
+You can scout for any job position simply by changing `TARGET_ROLE` in your `.env` file (defaults to `AI Engineer` if not specified):
+
+```env
+# In your .env file
+TARGET_ROLE=Machine Learning Engineer
+```
+
+### Examples of Supported Roles
+- `TARGET_ROLE=Machine Learning Engineer`
+- `TARGET_ROLE=Data Engineer`
+- `TARGET_ROLE=MLOps Engineer`
+- `TARGET_ROLE=Full Stack Developer`
+- `TARGET_ROLE=AI Product Manager`
+
+### Overriding for a Single Run via Terminal
+You can temporarily override the target role without editing your `.env`:
+
+```bash
+# Windows (PowerShell)
+$env:TARGET_ROLE="Data Engineer"; uv run python research_agent.py
+
+# Linux / macOS
+TARGET_ROLE="Data Engineer" uv run python research_agent.py
+```
+
+### Changing the Role in GitHub Actions
+When triggering the workflow manually via GitHub Actions (**Actions** → **Daily AI Engineer Scout Report** → **Run workflow**), enter the desired title in the **Target job title to search for** field.
 
 ## Repository Layout
 

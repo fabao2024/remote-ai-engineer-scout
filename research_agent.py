@@ -12,8 +12,14 @@ if sys.platform == "win32":
     except Exception:
         pass
 
+# Preserve TARGET_ROLE if explicitly passed via environment/CLI before loading .env
+_explicit_role = os.environ.get("TARGET_ROLE")
+
 from dotenv import load_dotenv
 load_dotenv(override=True)
+
+# Target role configuration (defaults to "AI Engineer" if not set)
+TARGET_ROLE = (_explicit_role or os.environ.get("TARGET_ROLE") or "AI Engineer").strip()
 
 from deepagents import create_deep_agent
 from langchain.chat_models import init_chat_model
@@ -30,7 +36,7 @@ def _send_failure_alert(error_msg: str) -> None:
     chat_id = os.environ.get("TELEGRAM_CHAT_ID")
     if not bot_token or not chat_id:
         return
-    text = f"❌ *Remote AI Scout failed*\n\n```\n{error_msg[:3000]}\n```"
+    text = f"❌ *Remote {TARGET_ROLE} Scout failed*\n\n```\n{error_msg[:3000]}\n```"
     try:
         httpx.post(
             f"https://api.telegram.org/bot{bot_token}/sendMessage",
@@ -48,15 +54,23 @@ def internet_search(
     include_raw_content: bool = False,
 ):
     """Run a web search via Tavily."""
-    return tavily_client.search(
-        query,
-        max_results=max_results,
-        include_raw_content=include_raw_content,
-        topic=topic,
-    )
+    try:
+        clean_query = query.strip()
+        words_without_site = [w for w in clean_query.split() if not w.startswith("site:")]
+        if not words_without_site:
+            clean_query = f"{TARGET_ROLE} {clean_query}"
+
+        return tavily_client.search(
+            clean_query,
+            max_results=max_results,
+            include_raw_content=include_raw_content,
+            topic=topic,
+        )
+    except Exception as e:
+        return {"error": f"Search failed: {e}. Please reformulate your search query with specific job title keywords and search terms."}
 
 
-sub_research_prompt = """You specialize in investigating remote AI Engineer job opportunities.
+sub_research_prompt = f"""You specialize in investigating remote {TARGET_ROLE} job opportunities.
 - Compile current remote-first or remote-friendly openings, employer details, required skills, compensation notes, and hiring signals.
 - Verify that each role explicitly allows remote work; if unclear, flag the uncertainty.
 - Capture useful metadata such as application deadlines, region restrictions, and tech stack requirements.
@@ -103,10 +117,10 @@ critique_sub_agent = {
     "system_prompt": sub_critique_prompt,
 }
 
-research_instructions = """You are an expert tech recruiter focused on remote AI Engineer positions open to Brazilian professionals working from Brazil.
+research_instructions = f"""You are an expert tech recruiter focused on remote {TARGET_ROLE} positions open to Brazilian professionals working from Brazil.
 Write the original user request to `question.txt` first.
 Use the research-agent to gather:
-- Remote AI Engineer job listings that explicitly accept candidates based in Brazil, or that are worldwide/globally remote
+- Remote {TARGET_ROLE} job listings that explicitly accept candidates based in Brazil, or that are worldwide/globally remote
 - Prioritize roles with no geographic restriction, or those that list Brazil, South America, or LATAM as eligible locations
 - Exclude roles that restrict to US/EU/Canada only unless they explicitly list Brazil or LATAM as exceptions
 - Companies currently hiring, team focus, and hiring stage
@@ -118,7 +132,7 @@ Use the research-agent to gather:
 Iterate with the critique-agent whenever you need help polishing the final report.
 
 When ready, write the report to `final_report.md` in Markdown using this structure:
-# Remote AI Engineer Opportunities Brief — Brazil
+# Remote {TARGET_ROLE} Opportunities Brief — Brazil
 ## Tabela Resumo Executiva
 ## Market Snapshot
 ## Active Remote Employers
@@ -146,7 +160,7 @@ Citation rules:
 
 Available tool:
 ## `internet_search`
-Use it to discover current remote AI Engineer roles open to Brazilian candidates."""
+Use it to discover current remote {TARGET_ROLE} roles open to Brazilian candidates."""
 
 # Configure the chat model (ensure OPENAI_API_KEY is set)
 from llm_router import get_llm
@@ -164,9 +178,9 @@ agent = create_deep_agent(
 
 if __name__ == "__main__":
     try:
-        print("Starting research agent...")
+        print(f"Starting research agent for role: {TARGET_ROLE}...")
         result = agent.invoke(
-            {"messages": [{"role": "user", "content": "Find remote AI Engineer roles hiring now that are open to Brazilian professionals working from Brazil. Focus on worldwide remote, LATAM-friendly, or Brazil-accepted positions."}]}
+            {"messages": [{"role": "user", "content": f"Find remote {TARGET_ROLE} roles hiring now that are open to Brazilian professionals working from Brazil. Focus on worldwide remote, LATAM-friendly, or Brazil-accepted positions."}]}
         )
 
         files = result.get("files", {})

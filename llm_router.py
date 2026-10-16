@@ -73,6 +73,7 @@ def get_llm(model_str: str | None = None) -> BaseChatModel:
             model=model_name,
             api_key=api_key,
             temperature=0,
+            max_retries=6,
         )
 
     else:

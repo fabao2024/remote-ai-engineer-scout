@@ -56,6 +56,7 @@ cp .env.example .env
 
 | Variável | Obrigatória | Exemplo | Uso |
 |---|---|---|---|
+| `TARGET_ROLE` | Não | `AI Engineer` | Cargo/posição a ser pesquisada (padrão: `AI Engineer`) |
 | `LLM_MODEL` | Não | `gemini:gemini-4-argon` | Provedor e modelo alvo |
 | `GEMINI_API_KEY` | Sim (p/ padrão) | `AQ...` | Chave da Google AI Studio |
 | `TAVILY_API_KEY` | Sim | `tvly-...` | Ferramenta de busca Tavily |
@@ -92,6 +93,36 @@ Fluxo de execução:
 2. Dispara o agente profundo com Gemini 4 Argon, consultando a web em tempo real via Tavily.
 3. O subagente de crítica audita a completude do relatório e a ordem crescente da tabela resumo.
 4. Grava `final_report.md` e envia automaticamente a notificação e o anexo para o seu Telegram.
+
+## 🎯 Como Customizar o Cargo Buscado
+
+Você pode pesquisar qualquer cargo simplesmente definindo a variável `TARGET_ROLE` no seu arquivo `.env` (caso não seja informada, o padrão é `AI Engineer`):
+
+```env
+# No seu arquivo .env
+TARGET_ROLE=Machine Learning Engineer
+```
+
+### Exemplos de Cargos Suportados
+- `TARGET_ROLE=Machine Learning Engineer`
+- `TARGET_ROLE=Data Engineer`
+- `TARGET_ROLE=MLOps Engineer`
+- `TARGET_ROLE=Full Stack Developer`
+- `TARGET_ROLE=AI Product Manager`
+
+### Alterando o Cargo Apenas para uma Execução via Terminal
+Você pode sobrepor o cargo temporariamente sem precisar editar o `.env`:
+
+```bash
+# Windows (PowerShell)
+$env:TARGET_ROLE="Data Engineer"; uv run python research_agent.py
+
+# Linux / macOS
+TARGET_ROLE="Data Engineer" uv run python research_agent.py
+```
+
+### Alterando o Cargo no GitHub Actions
+Ao disparar manualmente o workflow no GitHub Actions (**Actions** → **Daily AI Engineer Scout Report** → **Run workflow**), digite o cargo desejado no campo **Target job title to search for**.
 
 ## Estrutura do Repositório
 
