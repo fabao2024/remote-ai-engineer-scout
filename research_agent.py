@@ -22,6 +22,10 @@ load_dotenv(override=True)
 # Target role configuration (defaults to "Applied AI Engineer" if not set)
 TARGET_ROLE = (_explicit_role or os.environ.get("TARGET_ROLE") or "Applied AI Engineer").strip()
 
+# Support ENGINEER_AGENT_SCOUT as an alias for LANGCHAIN_API_KEY
+if not os.environ.get("LANGCHAIN_API_KEY") and os.environ.get("ENGINEER_AGENT_SCOUT"):
+    os.environ["LANGCHAIN_API_KEY"] = os.environ["ENGINEER_AGENT_SCOUT"].strip()
+
 # Preflight check for LangSmith tracing to prevent 403 Forbidden crashes
 if os.environ.get("LANGCHAIN_TRACING_V2", "").lower() in ("true", "1"):
     _ls_key = (os.environ.get("LANGCHAIN_API_KEY") or "").strip()
