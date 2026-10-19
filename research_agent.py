@@ -22,6 +22,21 @@ load_dotenv(override=True)
 # Target role configuration (defaults to "Applied AI Engineer" if not set)
 TARGET_ROLE = (_explicit_role or os.environ.get("TARGET_ROLE") or "Applied AI Engineer").strip()
 
+# Preflight check for LangSmith tracing to prevent 403 Forbidden crashes
+if os.environ.get("LANGCHAIN_TRACING_V2", "").lower() in ("true", "1"):
+    _ls_key = (os.environ.get("LANGCHAIN_API_KEY") or "").strip()
+    if not _ls_key or _ls_key.startswith("your_"):
+        print("Notice: LANGCHAIN_TRACING_V2 is enabled but no valid LANGCHAIN_API_KEY found. Disabling tracing.")
+        os.environ["LANGCHAIN_TRACING_V2"] = "false"
+    else:
+        try:
+            from langsmith import Client
+            _ls_client = Client(timeout_ms=3000)
+            list(_ls_client.list_projects(limit=1))
+        except Exception as _e:
+            print(f"Warning: LangSmith tracing preflight failed ({_e}). Disabling LANGCHAIN_TRACING_V2 to prevent workflow crash.")
+            os.environ["LANGCHAIN_TRACING_V2"] = "false"
+
 from deepagents import create_deep_agent
 from langchain.chat_models import init_chat_model
 from tavily import TavilyClient
