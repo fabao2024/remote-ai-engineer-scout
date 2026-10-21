@@ -6,6 +6,13 @@
     "last_seen": "2026-10-16",
     "role": "30"
   },
+  "http://job-boards.greenhouse.io/caylent/jobs/6207903004": {
+    "appearances": 1,
+    "company": "Caylent",
+    "first_seen": "2026-10-19",
+    "last_seen": "2026-10-19",
+    "role": "Senior Engineer (Customer Experience AI / Bedrock & Claude)"
+  },
   "https://careers.blueorange.digital/jobs/686647-senior-data-llm-engineer-ai-ready-data-agentic-systems": {
     "appearances": 2,
     "company": "Blue Orange Digital",
@@ -55,6 +62,13 @@
     "last_seen": "2026-10-16",
     "role": "5"
   },
+  "https://job-boards.greenhouse.io/coderoad/jobs/4406476009": {
+    "appearances": 1,
+    "company": "CodeRoad",
+    "first_seen": "2026-10-19",
+    "last_seen": "2026-10-19",
+    "role": "Agentic AI Engineer (Req 4406476009)"
+  },
   "https://job-boards.greenhouse.io/coderoad/jobs/4414020009": {
     "appearances": 1,
     "company": "CodeRoad",
@@ -68,6 +82,13 @@
     "first_seen": "2026-10-16",
     "last_seen": "2026-10-16",
     "role": "Senior AI Engineer (RAG/LLMs)"
+  },
+  "https://job-boards.greenhouse.io/factored/jobs/5345017008": {
+    "appearances": 1,
+    "company": "Factored",
+    "first_seen": "2026-10-19",
+    "last_seen": "2026-10-19",
+    "role": "Senior Machine Learning Engineer (LLMs - Agentic Workflows)"
   },
   "https://job-boards.greenhouse.io/nortal/jobs/5261238007": {
     "appearances": 1,
@@ -132,6 +153,13 @@
     "last_seen": "2026-10-16",
     "role": "Generative AI Engineer (LATAM Candidates Only)"
   },
+  "https://jobs.lever.co/bluelightconsulting/b2d0bf5c-303f-4ad7-bb5c-79040ddf94e6": {
+    "appearances": 1,
+    "company": "Bluelight Consulting",
+    "first_seen": "2026-10-19",
+    "last_seen": "2026-10-19",
+    "role": "Agentic AI Solutions Architect - Remote, Latin America"
+  },
   "https://jobs.lever.co/ciandt/33476e73-cc4f-4707-9c0b-c692dc05d466": {
     "appearances": 2,
     "company": "CI&T",
@@ -166,6 +194,13 @@
     "first_seen": "2026-06-08",
     "last_seen": "2026-06-08",
     "role": "Remotive"
+  },
+  "https://remotive.com/remote/jobs/artificial-intelligence/applied-ai-agent-ai-productivity-engineer-6240160": {
+    "appearances": 1,
+    "company": "Binance",
+    "first_seen": "2026-10-19",
+    "last_seen": "2026-10-19",
+    "role": "Applied AI Agent / AI Productivity Engineer"
   },
   "https://remotive.com/remote/jobs/artificial-intelligence/senior-machine-learning-engineer-6141143": {
     "appearances": 1,

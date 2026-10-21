@@ -10,8 +10,8 @@ from langchain_openai import ChatOpenAI
 # Supported providers
 Provider = Literal["openai", "zhipu", "gemini", "google"]
 
-DEFAULT_MODEL = "gemini:gemini-2.5-flash"
-DEFAULT_FALLBACK_MODELS = "openai:gpt-4o-mini,zhipu:glm-4-flash"
+DEFAULT_MODEL = "gemini:gemini-3.8-flash"
+DEFAULT_FALLBACK_MODELS = "gemini:gemini-4-argon,openai:gpt-4o-mini,zhipu:glm-4-flash"
 
 
 def _max_retries() -> int:
