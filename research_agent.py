@@ -141,7 +141,7 @@ critique_sub_agent = {
 }
 
 research_instructions = f"""You are an expert tech recruiter focused on remote {TARGET_ROLE} positions open to Brazilian professionals working from Brazil.
-Write the original user request to `question.txt` first.
+Write the original user request to `/question.txt` (or `question.txt`) first.
 Use the research-agent to gather:
 - Remote {TARGET_ROLE} job listings that explicitly accept candidates based in Brazil, or that are worldwide/globally remote
 - Prioritize roles with no geographic restriction, or those that list Brazil, South America, or LATAM as eligible locations
@@ -156,7 +156,7 @@ Use the research-agent to gather:
 
 Iterate with the critique-agent whenever you need help polishing the final report.
 
-When ready, write the report to `final_report.md` in Markdown using this structure:
+When ready, write the report to `/final_report.md` (or `final_report.md`) in Markdown using this structure:
 # Remote {TARGET_ROLE} Opportunities Brief — Brazil
 ## Tabela Resumo Executiva
 ## Market Snapshot
@@ -221,41 +221,94 @@ if __name__ == "__main__":
         )
 
         files = result.get("files", {})
-        final_data = files.get("/final_report.md")
+
+        # Robust extraction of final_report.md across possible path styles
+        final_data = None
+        for key in ("/final_report.md", "final_report.md", "./final_report.md"):
+            if key in files:
+                final_data = files[key]
+                break
+        if not final_data:
+            for k, v in files.items():
+                if k.rstrip().lower().endswith("final_report.md"):
+                    final_data = v
+                    break
+
+        report_text = None
         if final_data:
-            report_text = "\n".join(final_data["content"]) if isinstance(final_data["content"], list) else str(final_data["content"])
-            Path("final_report.md").write_text(report_text, encoding="utf-8")
-            print("Successfully written final_report.md")
+            if isinstance(final_data, dict) and "content" in final_data:
+                report_text = "\n".join(final_data["content"]) if isinstance(final_data["content"], list) else str(final_data["content"])
+            elif isinstance(final_data, (str, list)):
+                report_text = "\n".join(final_data) if isinstance(final_data, list) else str(final_data)
 
-            # Deterministic URL health check and eligibility audit.
-            # Validation and registry failures are release blockers: the workflow
-            # must not commit or deliver a report that was not audited.
-            from url_validator import sanitize_report
+        # Fallback 1: inspect agent message history for the markdown report
+        if not report_text:
+            messages = result.get("messages", [])
+            for msg in reversed(messages):
+                content = getattr(msg, "content", "")
+                if isinstance(content, list):
+                    text_parts = [b.get("text", "") if isinstance(b, dict) else str(b) for b in content]
+                    content = "\n".join(text_parts)
+                content = str(content)
+                if "## Tabela Resumo Executiva" in content or f"Remote {TARGET_ROLE}" in content:
+                    report_text = content
+                    break
 
-            print("Auditing and sanitizing job URLs in final report...")
-            audit_result = sanitize_report("final_report.md")
-            if audit_result.get("error"):
-                raise RuntimeError(f"URL sanitization failed: {audit_result['error']}")
-            if "total_checked" not in audit_result:
-                raise RuntimeError(f"URL sanitization did not validate an executive table: {audit_result}")
+        # Fallback 2: check if final_report.md exists on disk and is non-empty
+        if not report_text and Path("final_report.md").exists():
+            disk_text = Path("final_report.md").read_text(encoding="utf-8").strip()
+            if "## Tabela Resumo Executiva" in disk_text or f"Remote {TARGET_ROLE}" in disk_text:
+                report_text = disk_text
 
-            rem_count = audit_result.get("removed_count", 0)
-            val_count = audit_result.get("valid_count", 0)
-            if rem_count > 0:
-                print(f"Audit complete: {rem_count} closed/invalid positions removed ({val_count} remain active).")
-            else:
-                print(f"Audit complete: All {val_count} positions are active and validated.")
+        if not report_text:
+            available_files = list(files.keys())
+            raise RuntimeError(f"Agent output did not contain final_report.md. Available files in state: {available_files}")
 
-            # Update persistent memory tracker (seen_jobs.json). A tracker
-            # failure must stop the run before any commit or delivery.
-            new_jobs = update_seen_jobs("final_report.md")
-            print(f"Updated seen_jobs.json: {new_jobs} new positions recorded.")
+        Path("final_report.md").write_text(report_text, encoding="utf-8")
+        print("Successfully written final_report.md")
+
+        # Deterministic URL health check and eligibility audit.
+        # Validation and registry failures are release blockers: the workflow
+        # must not commit or deliver a report that was not audited.
+        from url_validator import sanitize_report
+
+        print("Auditing and sanitizing job URLs in final report...")
+        audit_result = sanitize_report("final_report.md")
+        if audit_result.get("error"):
+            raise RuntimeError(f"URL sanitization failed: {audit_result['error']}")
+        if "total_checked" not in audit_result:
+            raise RuntimeError(f"URL sanitization did not validate an executive table: {audit_result}")
+
+        rem_count = audit_result.get("removed_count", 0)
+        val_count = audit_result.get("valid_count", 0)
+        if rem_count > 0:
+            print(f"Audit complete: {rem_count} closed/invalid positions removed ({val_count} remain active).")
         else:
-            raise RuntimeError("Agent output did not contain /final_report.md")
+            print(f"Audit complete: All {val_count} positions are active and validated.")
 
-        question_data = files.get("/question.txt")
+        # Update persistent memory tracker (seen_jobs.json). A tracker
+        # failure must stop the run before any commit or delivery.
+        new_jobs = update_seen_jobs("final_report.md")
+        print(f"Updated seen_jobs.json: {new_jobs} new positions recorded.")
+
+        # Robust extraction for question.txt
+        question_data = None
+        for key in ("/question.txt", "question.txt", "./question.txt"):
+            if key in files:
+                question_data = files[key]
+                break
+        if not question_data:
+            for k, v in files.items():
+                if k.rstrip().lower().endswith("question.txt"):
+                    question_data = v
+                    break
         if question_data:
-            q_text = "\n".join(question_data["content"]) if isinstance(question_data["content"], list) else str(question_data["content"])
+            if isinstance(question_data, dict) and "content" in question_data:
+                q_text = "\n".join(question_data["content"]) if isinstance(question_data["content"], list) else str(question_data["content"])
+            elif isinstance(question_data, (str, list)):
+                q_text = "\n".join(question_data) if isinstance(question_data, list) else str(question_data)
+            else:
+                q_text = str(question_data)
             Path("question.txt").write_text(q_text, encoding="utf-8")
             print("Successfully written question.txt")
 
