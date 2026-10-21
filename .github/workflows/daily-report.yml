@@ -103,22 +103,22 @@ jobs:
         run: |
           cp final_report.md reports/${{ steps.timestamp.outputs.filename }}
 
-      - name: Commit report to repository
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add reports/${{ steps.timestamp.outputs.filename }} seen_jobs.json
-          if git diff --staged --quiet; then
-            echo "No generated changes to commit"
-            exit 0
-          fi
-          git commit -m "Add daily report ${{ steps.timestamp.outputs.date }} and update seen jobs"
-          git pull --rebase origin main
-          git push origin HEAD:main
-
       - name: Send report via Telegram
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
           uv run python send_report_telegram.py
+
+      - name: Commit report to repository
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add final_report.md question.txt reports/${{ steps.timestamp.outputs.filename }} seen_jobs.json
+          if git diff --staged --quiet; then
+            echo "No generated changes to commit"
+            exit 0
+          fi
+          git commit -m "Add daily report ${{ steps.timestamp.outputs.date }} and update seen jobs"
+          git pull --rebase --autostash origin main
+          git push origin HEAD:main
