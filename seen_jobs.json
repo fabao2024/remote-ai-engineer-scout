@@ -27,6 +27,20 @@
     "last_seen": "2026-10-21",
     "role": "Applied AI Value Architect"
   },
+  "https://boards.greenhouse.io/externaljobboards/jobs/6230833004": {
+    "appearances": 1,
+    "company": "Exadel",
+    "first_seen": "2026-11-02",
+    "last_seen": "2026-11-02",
+    "role": "Middle AI Agent & Developer Experience Engineer"
+  },
+  "https://boards.greenhouse.io/securityscorecard/jobs/8324966": {
+    "appearances": 1,
+    "company": "SecurityScorecard",
+    "first_seen": "2026-11-02",
+    "last_seen": "2026-11-02",
+    "role": "Distinguished Software Engineer, AI"
+  },
   "https://careers.blueorange.digital/jobs/686647-senior-data-llm-engineer-ai-ready-data-agentic-systems": {
     "appearances": 2,
     "company": "Blue Orange Digital",
@@ -61,6 +75,13 @@
     "first_seen": "2026-10-16",
     "last_seen": "2026-10-16",
     "role": "AI Senior Engineer (Graph) at Able"
+  },
+  "https://job-boards.greenhouse.io/able/jobs/8392601002": {
+    "appearances": 1,
+    "company": "Able",
+    "first_seen": "2026-11-02",
+    "last_seen": "2026-11-02",
+    "role": "AI Senior Engineer (Vision)"
   },
   "https://job-boards.greenhouse.io/able/jobs/8538789002": {
     "appearances": 1,
@@ -103,6 +124,13 @@
     "first_seen": "2026-10-19",
     "last_seen": "2026-10-19",
     "role": "Senior Machine Learning Engineer (LLMs - Agentic Workflows)"
+  },
+  "https://job-boards.greenhouse.io/nimblegravity/jobs/4692556005": {
+    "appearances": 1,
+    "company": "Nimble Gravity",
+    "first_seen": "2026-11-02",
+    "last_seen": "2026-11-02",
+    "role": "Sr AI Engineer – GenAI & Agentic Systems"
   },
   "https://job-boards.greenhouse.io/nortal/jobs/5261238007": {
     "appearances": 1,
@@ -181,6 +209,13 @@
     "last_seen": "2026-10-16",
     "role": "Senior AI Engineer (Financial Sector - Job-32285)"
   },
+  "https://jobs.lever.co/ciandt/53498bff-667d-4526-8b8b-a43ff0fe4ced": {
+    "appearances": 1,
+    "company": "CI&T",
+    "first_seen": "2026-11-02",
+    "last_seen": "2026-11-02",
+    "role": "[Job-31711] Senior AI Engineer Agentic SDLC"
+  },
   "https://jobs.lever.co/ciandt/92969fab-e7fb-4d7d-8d87-d8bd6464499c": {
     "appearances": 1,
     "company": "CI&T",
@@ -194,6 +229,13 @@
     "first_seen": "2026-10-16",
     "last_seen": "2026-10-16",
     "role": "CI&T — Senior AI Engineer (Job-30118)"
+  },
+  "https://jobs.lever.co/coderio/48ad8ddf-5774-4f13-b144-169d02af6cb2": {
+    "appearances": 1,
+    "company": "Coderio",
+    "first_seen": "2026-11-02",
+    "last_seen": "2026-11-02",
+    "role": "Senior AI Backend Engineer (Python)"
   },
   "https://jobs.workable.com/search/brazil/remote-software-jobs": {
     "appearances": 3,
