@@ -34,6 +34,20 @@
     "last_seen": "2026-11-02",
     "role": "Middle AI Agent & Developer Experience Engineer"
   },
+  "https://boards.greenhouse.io/nortal/jobs/5268601007": {
+    "appearances": 1,
+    "company": "Nortal",
+    "first_seen": "2026-11-06",
+    "last_seen": "2026-11-06",
+    "role": "(1607) AI Engineer & Support Lead"
+  },
+  "https://boards.greenhouse.io/nortal/jobs/5268685007": {
+    "appearances": 1,
+    "company": "Nortal",
+    "first_seen": "2026-11-06",
+    "last_seen": "2026-11-06",
+    "role": "(1609) Senior AI Engineer (Full Stack)"
+  },
   "https://boards.greenhouse.io/securityscorecard/jobs/8324966": {
     "appearances": 1,
     "company": "SecurityScorecard",
@@ -89,6 +103,20 @@
     "first_seen": "2026-10-16",
     "last_seen": "2026-10-16",
     "role": "Principal AI Engineer"
+  },
+  "https://job-boards.greenhouse.io/arionkoder/jobs/5470073008": {
+    "appearances": 1,
+    "company": "Arionkoder",
+    "first_seen": "2026-11-06",
+    "last_seen": "2026-11-06",
+    "role": "Sr AI Engineer (Backend & Platform)"
+  },
+  "https://job-boards.greenhouse.io/arionkoder/jobs/5470101008": {
+    "appearances": 1,
+    "company": "Arionkoder",
+    "first_seen": "2026-11-06",
+    "last_seen": "2026-11-06",
+    "role": "Sr AI Engineer (ML & Data)"
   },
   "https://job-boards.greenhouse.io/coderoad/jobs/4375543009": {
     "appearances": 1,
@@ -188,6 +216,13 @@
     "last_seen": "2026-10-16",
     "role": "Forward Deployed Engineer — AI Solutions"
   },
+  "https://jobs.lever.co/RyzLabs/5318e96e-f58b-439c-8172-a812def9e38f": {
+    "appearances": 1,
+    "company": "RYZ Labs",
+    "first_seen": "2026-11-06",
+    "last_seen": "2026-11-06",
+    "role": "Principal AI Engineer"
+  },
   "https://jobs.lever.co/TalentusGlobal/9760b72b-c022-4be9-9858-10ea64edef89": {
     "appearances": 1,
     "company": "Talentus Global",
@@ -216,12 +251,26 @@
     "last_seen": "2026-11-02",
     "role": "[Job-31711] Senior AI Engineer Agentic SDLC"
   },
+  "https://jobs.lever.co/ciandt/635f2b87-1382-4e27-982d-d8b585c273fe": {
+    "appearances": 1,
+    "company": "CI&T",
+    "first_seen": "2026-11-06",
+    "last_seen": "2026-11-06",
+    "role": "[Job - 32405] Senior Back End Developer (Python/Golang, AI Integration), Brazil"
+  },
   "https://jobs.lever.co/ciandt/92969fab-e7fb-4d7d-8d87-d8bd6464499c": {
     "appearances": 1,
     "company": "CI&T",
     "first_seen": "2026-10-16",
     "last_seen": "2026-10-16",
     "role": "Senior AI Engineer (Job-00023)"
+  },
+  "https://jobs.lever.co/ciandt/b4f02ee0-09d6-46fc-b0f0-43d55852869a": {
+    "appearances": 1,
+    "company": "CI&T",
+    "first_seen": "2026-11-06",
+    "last_seen": "2026-11-06",
+    "role": "[Job - 32565] AI Engineer Senior, Brazil"
   },
   "https://jobs.lever.co/ciandt/b5a7671b-6612-4ed7-ae0a-132c920bc66d": {
     "appearances": 2,
@@ -236,6 +285,13 @@
     "first_seen": "2026-11-02",
     "last_seen": "2026-11-02",
     "role": "Senior AI Backend Engineer (Python)"
+  },
+  "https://jobs.lever.co/provectus/09a9f440-eecd-4c9a-b10b-6badc4b4fb81": {
+    "appearances": 1,
+    "company": "Provectus",
+    "first_seen": "2026-11-06",
+    "last_seen": "2026-11-06",
+    "role": "Senior AI/ML Engineer (GenAI, AWS)"
   },
   "https://jobs.workable.com/search/brazil/remote-software-jobs": {
     "appearances": 3,
