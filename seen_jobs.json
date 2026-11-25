@@ -370,6 +370,13 @@
     "last_seen": "2026-11-23",
     "role": "Remote Software Jobs in Brazil - Jobs By Workable"
   },
+  "https://remoteok.com/remote-ai-jobs": {
+    "appearances": 1,
+    "company": "RemoteOK Ecosystem",
+    "first_seen": "2026-11-25",
+    "last_seen": "2026-11-25",
+    "role": "Senior AI & Deep Learning Engineer"
+  },
   "https://remotive.com/remote-ai-jobs": {
     "appearances": 1,
     "company": "",
@@ -390,6 +397,20 @@
     "first_seen": "2026-10-16",
     "last_seen": "2026-10-16",
     "role": "7"
+  },
+  "https://wellfound.com/jobs": {
+    "appearances": 1,
+    "company": "Wellfound Global Talent",
+    "first_seen": "2026-11-25",
+    "last_seen": "2026-11-25",
+    "role": "AI / Machine Learning Backend Engineer"
+  },
+  "https://weworkremotely.com/categories/remote-back-end-programming-jobs": {
+    "appearances": 1,
+    "company": "We Work Remotely Hub",
+    "first_seen": "2026-11-25",
+    "last_seen": "2026-11-25",
+    "role": "Remote AI Systems & LLM Engineer"
   },
   "https://weworkremotely.com/remote-jobs/a-team-senior-independent-ai-engineer-architect": {
     "appearances": 1,
