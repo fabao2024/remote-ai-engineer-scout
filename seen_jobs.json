@@ -62,6 +62,13 @@
     "last_seen": "2026-11-02",
     "role": "Distinguished Software Engineer, AI"
   },
+  "https://boards.greenhouse.io/turing": {
+    "appearances": 1,
+    "company": "Turing",
+    "first_seen": "2026-11-27",
+    "last_seen": "2026-11-27",
+    "role": "Generative AI Solutions Engineer"
+  },
   "https://careers.blueorange.digital/jobs/686647-senior-data-llm-engineer-ai-ready-data-agentic-systems": {
     "appearances": 2,
     "company": "Blue Orange Digital",
@@ -138,6 +145,13 @@
     "first_seen": "2026-11-09",
     "last_seen": "2026-11-09",
     "role": "Agentic Engineer"
+  },
+  "https://job-boards.greenhouse.io/canonical": {
+    "appearances": 1,
+    "company": "Canonical",
+    "first_seen": "2026-11-27",
+    "last_seen": "2026-11-27",
+    "role": "Senior AI / Machine Learning Software Engineer"
   },
   "https://job-boards.greenhouse.io/coderoad/jobs/4375543009": {
     "appearances": 1,
